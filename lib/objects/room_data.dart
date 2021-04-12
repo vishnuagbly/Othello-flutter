@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:developer' as dev;
 
 import 'package:othello/objects/profile.dart';
+import 'package:othello/utils/globals.dart';
 import 'package:othello/utils/networks.dart';
 
 import 'chat_message.dart';
@@ -108,7 +109,7 @@ class RoomData extends ChangeNotifier with Savable {
             : length,
         this.height = currentBoard?.length ?? height,
         this._timestamp = timestamp ?? DateTime.now(),
-        this._currentBoard = currentBoard ?? initializeBoard(length, height),
+        this._currentBoard = currentBoard ?? _initializeBoard(length, height),
         this.__playerIdTurn = whiteFirstTurn ? whitePlayer.id : blackPlayer.id,
         this._lastMoves = lastMoves ?? [],
         this._chats = chats ?? [],
@@ -190,6 +191,17 @@ class RoomData extends ChangeNotifier with Savable {
     );
   }
 
+  factory RoomData.offlineCvC() {
+    return RoomData._raw(
+      id: Globals.uuid.v1(),
+      hiveKey: null,
+      blackPlayer: Player(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
+      whitePlayer: Player(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
+      length: 8,
+      height: 12,
+    );
+  }
+
   static RoomData? fromStorage(String hiveKey) {
     var box = Hive.box(hiveBoxName);
     var _rawData = box.get(hiveKey);
@@ -245,7 +257,8 @@ class RoomData extends ChangeNotifier with Savable {
   static const hiveBoxName = 'Rooms';
   static const hiveOfflinePvPKey = 'offlinePvP';
   static const hiveOfflinePvCKey = 'offlinePvC';
-  final String id, hiveKey;
+  final String id;
+  final String? hiveKey;
   final Player blackPlayer, whitePlayer;
   final int height, length;
   String __playerIdTurn;
@@ -337,7 +350,7 @@ class RoomData extends ChangeNotifier with Savable {
     return res;
   }
 
-  static List<List<int>> initializeBoard(int length, int height) {
+  static List<List<int>> _initializeBoard(int length, int height) {
     List<List<int>> board = [];
     for (int i = 0; i < height; i++) {
       board.add([]);
@@ -374,6 +387,15 @@ class RoomData extends ChangeNotifier with Savable {
     return res;
   }
 
+  void reset() {
+    if (isOnline) return;
+    _lastMoves.clear();
+    _currentBoard = _initializeBoard(length, height);
+    _blackTotalDuration = Duration.zero;
+    _whiteTotalDuration = Duration.zero;
+    _timestamp = DateTime.now();
+  }
+
   void undo({bool debug = false}) {
     if (lastMoves.length < 2) return;
     _lastMoves.removeLast();
@@ -406,6 +428,7 @@ class RoomData extends ChangeNotifier with Savable {
 
   void _saveGameOffline() async {
     if (isOnline) return;
+    if (hiveKey == null) return;
     var box = Hive.box(hiveBoxName);
     await box.put(hiveKey, toMap());
     print("successfully saved");

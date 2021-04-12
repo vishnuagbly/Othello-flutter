@@ -3,12 +3,17 @@ part of 'room_data.dart';
 abstract class NextMoveFns {
   static String offlineTempId = 'offlineTemp';
   static String onlineId = 'onlineId';
+  static String offlineDelayedTempId = 'offlineDelayedTemp';
   static Map<String, Future<List<int>?> Function(RoomData, String)> fns = {
     offlineTempId: (roomData, id) async {
       await Future.delayed(Duration(seconds: 0));
       return roomData.getPossibleMovesList().first;
     },
     onlineId: _onlineNextMoveFn,
+    offlineDelayedTempId: (roomData, id) async {
+      await Future.delayed(Duration(hours: 3));
+      return roomData.getPossibleMovesList().first;
+    }
   };
 
   static Future<List<int>?> _onlineNextMoveFn(
@@ -24,7 +29,7 @@ abstract class NextMoveFns {
 
       List<List<int>> currentBoard = unmodifiableFromFlatList(
           data[RoomDataLabels.currentBoard]?.cast<int>()?.toList() ??
-              RoomData.initializeBoard(roomData.length, roomData.height).flat,
+              RoomData._initializeBoard(roomData.length, roomData.height).flat,
           roomData.length);
       final move = _getMove(roomData.currentBoard, currentBoard);
       if (move == null) continue;

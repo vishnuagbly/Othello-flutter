@@ -10,12 +10,13 @@ import 'package:othello/objects/room_data.dart';
 import 'package:othello/utils/globals.dart';
 
 class GameInfo {
-  GameInfo(this._roomData, this._context) {
+  GameInfo(this._roomData, this._context, {this.autoReset = false}) {
     _initValues();
     WidgetsBinding.instance!.addPostFrameCallback((_) => _markPossibleMoves());
   }
 
   final BuildContext _context;
+  final bool autoReset;
   late double _boardWidth;
   late double cellWidth;
   RoomData _roomData;
@@ -86,7 +87,14 @@ class GameInfo {
     return false;
   }
 
-  void _endGame(BuildContext context) {
+  void _endGame(BuildContext context) async {
+    if (autoReset) {
+      _roomData.reset();
+      await Future.delayed(Duration(seconds: 2));
+      _markPossibleMovesOrEndGame(context: context);
+      _syncEachPiece(false, false);
+      return;
+    }
     final _status = _roomData.getStatus();
     showDialog(
         context: context,

@@ -57,34 +57,57 @@ class _MainMenuState extends State<MainMenu> {
     return Scaffold(
       drawer: SideDrawer(),
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomButton(
-              text: "vs Computer",
-              onPressed: () {
-                Navigator.pushNamed(context, GameRoom.offlinePvCRouteName);
-              },
-            ),
-            SizedBox(height: 20),
-            CustomButton(
-              text: "Pass N Play",
-              onPressed: () {
-                Navigator.pushNamed(context, GameRoom.offlinePvPRouteName);
-              },
-              white: false,
-            ),
-            SizedBox(height: 20),
-            CustomButton(
-              onPressed: () async {
-                if (user == null)
-                  Navigator.pushNamed(context, SignUpScreen.routeName);
-                else
-                  Navigator.pushNamed(context, OnlineRooms.routeName);
-              },
-              text: 'Online',
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ColorFiltered(
+                colorFilter: ColorFilter.mode(Colors.grey, BlendMode.modulate),
+                child: GameRoom.offlineCvC(),
+              ),
+              SizedBox(
+                height: 40,
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomButton(
+                        text: "vs Computer",
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, GameRoom.offlinePvCRouteName);
+                        },
+                        width: Globals.maxScreenWidth * 0.3,
+                      ),
+                      SizedBox(width: Globals.maxScreenWidth * 0.06),
+                      CustomButton(
+                        text: "Pass N Play",
+                        onPressed: () {
+                          Navigator.pushNamed(
+                              context, GameRoom.offlinePvPRouteName);
+                        },
+                        width: Globals.maxScreenWidth * 0.3,
+                        white: false,
+                      ),
+                    ],
+                  ),
+                  CustomButton(
+                    onPressed: () async {
+                      if (user == null)
+                        Navigator.pushNamed(context, SignUpScreen.routeName);
+                      else
+                        Navigator.pushNamed(context, OnlineRooms.routeName);
+                    },
+                    width: Globals.maxScreenWidth * 0.3,
+                    text: 'Online',
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

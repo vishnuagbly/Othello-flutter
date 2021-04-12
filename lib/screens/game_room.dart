@@ -17,18 +17,29 @@ class GameRoom extends StatefulWidget {
   static const offlinePvPRouteName = '/game_room/offline_pvp';
   static const fromKeyRouteName = '/game_room/from_key';
 
-  GameRoom(this.roomData);
+  GameRoom(this.roomData, {this.onlyBoard = false});
 
-  GameRoom.offlinePvP({bool resetGame = false})
-      : this.roomData = RoomData.offlinePvP(resetGame: resetGame);
+  GameRoom.offlineCvC()
+      : this.roomData = RoomData.offlineCvC(),
+        this.onlyBoard = true;
 
-  GameRoom.offlinePvC({bool resetGame = false})
-      : this.roomData = RoomData.offlinePvC(resetGame: resetGame);
+  GameRoom.offlinePvP({
+    bool resetGame = false,
+    this.onlyBoard = false,
+  }) : this.roomData = RoomData.offlinePvP(resetGame: resetGame);
 
-  GameRoom.fromKey(String key)
-      : this.roomData = RoomData.fromKey(key, resetGame: true);
+  GameRoom.offlinePvC({
+    bool resetGame = false,
+    this.onlyBoard = false,
+  }) : this.roomData = RoomData.offlinePvC(resetGame: resetGame);
+
+  GameRoom.fromKey(
+    String key, {
+    this.onlyBoard = false,
+  }) : this.roomData = RoomData.fromKey(key, resetGame: true);
 
   final RoomData roomData;
+  final bool onlyBoard;
 
   @override
   _GameRoomState createState() => _GameRoomState();
@@ -41,13 +52,12 @@ class _GameRoomState extends State<GameRoom>
 
   @override
   void initState() {
-    _gameInfo = GameInfo(widget.roomData, context);
+    _gameInfo = GameInfo(widget.roomData, context, autoReset: widget.onlyBoard);
     _initStack();
     super.initState();
   }
 
   void _initStack() {
-
     mainStack = [
       Column(
         children: List.generate(
@@ -85,28 +95,34 @@ class _GameRoomState extends State<GameRoom>
 
   void resetGame() {
     Navigator.pushNamedAndRemoveUntil(
-      context,
-      '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}',
-      ModalRoute.withName('/'));
+        context,
+        '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}',
+        ModalRoute.withName('/'));
   }
 
   @override
   Widget build(BuildContext context) {
+    final board = Container(
+      color: Colors.grey[850],
+      padding: const EdgeInsets.all(10),
+      child: Container(
+        width: _gameInfo.cellWidth * _gameInfo.boardLength,
+        height: _gameInfo.cellWidth * _gameInfo.boardHeight,
+        color: Colors.green[600],
+        child: Stack(
+          children: mainStack,
+        ),
+      ),
+    );
+
+    if (widget.onlyBoard)
+      return ChangeNotifierProvider<RoomData>(
+        create: (context) => _gameInfo.roomData,
+        child: board,
+      );
+
     return Scaffold(
-      appBar: !kIsWeb
-          ? AppBar(
-              title: Text("Othello Game"),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.replay),
-                  onPressed: () {
-                    resetGame();
-                  },
-                )
-              ],
-            )
-          : null,
-      backgroundColor: Colors.grey[850],
+      backgroundColor: Colors.black,
       body: ChangeNotifierProvider<RoomData>(
         create: (context) => _gameInfo.roomData,
         child: Padding(
@@ -118,18 +134,7 @@ class _GameRoomState extends State<GameRoom>
                   child: ScoreBoard(),
                 ),
               ),
-              Container(
-                color: Colors.black,
-                padding: const EdgeInsets.all(10),
-                child: Container(
-                  width: _gameInfo.cellWidth * _gameInfo.boardLength,
-                  height: _gameInfo.cellWidth * _gameInfo.boardHeight,
-                  color: Colors.green[600],
-                  child: Stack(
-                    children: mainStack,
-                  ),
-                ),
-              ),
+              board,
               Expanded(
                 child: Container(
                   child: ScoreBoard(aboveBoard: false, forWhite: false),
@@ -147,18 +152,17 @@ class _GameRoomState extends State<GameRoom>
             child: Icon(Icons.undo),
             onPressed: _gameInfo.undo,
           ),
-          if (kIsWeb)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(width: 10),
-                FloatingActionButton(
-                  heroTag: "reset_tag",
-                  onPressed: resetGame,
-                  child: Icon(Icons.replay),
-                ),
-              ],
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(width: 10),
+              FloatingActionButton(
+                heroTag: "reset_tag",
+                onPressed: resetGame,
+                child: Icon(Icons.replay),
+              ),
+            ],
+          ),
         ],
       ),
     );

@@ -8,12 +8,14 @@ class CustomButton extends StatefulWidget {
   CustomButton({
     required this.text,
     required this.onPressed,
+    this.width,
     this.white = true,
   });
 
   final String text;
   final void Function() onPressed;
   final bool white;
+  final double? width;
 
   @override
   _CustomButtonState createState() => _CustomButtonState();
@@ -51,13 +53,16 @@ class _CustomButtonState extends State<CustomButton> {
               });
             },
             child: Container(
+              width: widget.width,
               padding: EdgeInsets.fromLTRB(
                 Globals.maxScreenWidth * 0.025,
+                Globals.maxScreenWidth * 0.015,
                 8,
-                8,
-                8,
+                Globals.maxScreenWidth * 0.015,
               ),
-              child: Text(widget.text),
+              child: widget.width != null
+                  ? Center(child: Text(widget.text))
+                  : Text(widget.text),
             ),
           ),
         ),
