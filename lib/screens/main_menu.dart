@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:othello/components/custom_button.dart';
 import 'package:othello/components/side_drawer.dart';
 import 'package:othello/objects/profile.dart';
 import 'package:othello/screens/game_room.dart';
@@ -59,28 +60,29 @@ class _MainMenuState extends State<MainMenu> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ElevatedButton(
+            CustomButton(
+              text: "vs Computer",
               onPressed: () {
                 Navigator.pushNamed(context, GameRoom.offlinePvCRouteName);
               },
-              child: Text("vs Computer"),
             ),
             SizedBox(height: 20),
-            ElevatedButton(
+            CustomButton(
+              text: "Pass N Play",
               onPressed: () {
                 Navigator.pushNamed(context, GameRoom.offlinePvPRouteName);
               },
-              child: Text('pass n play'),
+              white: false,
             ),
             SizedBox(height: 20),
-            ElevatedButton(
+            CustomButton(
               onPressed: () async {
                 if (user == null)
                   Navigator.pushNamed(context, SignUpScreen.routeName);
                 else
                   Navigator.pushNamed(context, OnlineRooms.routeName);
               },
-              child: Text('Online'),
+              text: 'Online',
             ),
           ],
         ),
