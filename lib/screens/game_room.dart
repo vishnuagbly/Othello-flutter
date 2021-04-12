@@ -10,6 +10,7 @@ import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info.dart';
 import 'package:othello/objects/room_data.dart';
+import 'package:othello/screens/chat_screen.dart';
 import 'package:provider/provider.dart';
 
 class GameRoom extends StatefulWidget {
@@ -101,6 +102,12 @@ class _GameRoomState extends State<GameRoom>
                   icon: Icon(Icons.replay),
                   onPressed: () {
                     resetGame();
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.chat_outlined),
+                  onPressed: () {
+                    Navigator.pushNamed(context, ChatScreen.routeName);
                   },
                 )
               ],

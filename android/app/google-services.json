@@ -14,6 +14,30 @@
       },
       "oauth_client": [
         {
+          "client_id": "733014771219-h47n93teaamqje1uobooma5b52vcabgv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vishnuworld.othello",
+            "certificate_hash": "9ffe93eb47d4ffe20c533a6a862c3e5ffb162381"
+          }
+        },
+        {
+          "client_id": "733014771219-ma8b44u89e7kmjpcfm1ioqf9c2qd1lds.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vishnuworld.othello",
+            "certificate_hash": "9f9a501a359e572261229babc6ee4fa9fd73366e"
+          }
+        },
+        {
+          "client_id": "733014771219-ouss49i26err0lhdk2ul79bggllfucbj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vishnuworld.othello",
+            "certificate_hash": "df4e4a1f918118cb8ba2e3dae0d482b8928705bb"
+          }
+        },
+        {
           "client_id": "733014771219-9iqdeg1o7kt834dp13a89fos5vc9g89k.apps.googleusercontent.com",
           "client_type": 3
         }
