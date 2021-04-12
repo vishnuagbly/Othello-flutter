@@ -19,7 +19,7 @@ class _MainMenuState extends State<MainMenu> {
 
   @override
   void initState() {
-    FirebaseAuth.instance.authStateChanges().listen((user) async {
+    FirebaseAuth.instance.userChanges().listen((user) async {
       this.user = user;
       Navigator.popUntil(context, ModalRoute.withName('/'));
       await Profile.setProfile(context, user);
@@ -74,7 +74,7 @@ class _MainMenuState extends State<MainMenu> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (user == null)
                   Navigator.pushNamed(context, SignUpScreen.routeName);
                 else
