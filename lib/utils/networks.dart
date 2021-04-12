@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:othello/objects/chat_message.dart';
 import 'package:othello/objects/online_room_meta_data.dart';
 import 'package:othello/objects/profile.dart';
 import 'package:othello/objects/room_data.dart';
@@ -11,23 +12,19 @@ abstract class Networks {
   static final _firestore = FirebaseFirestore.instance;
   static final _rooms = _firestore.collection('rooms');
   static final _profiles = _firestore.collection('profiles');
-  static final _functions =
-      FirebaseFunctions.instanceFor(region: 'asia-south1');
+  static final _functions = FirebaseFunctions.instanceFor(region: 'asia-south1');
   static const _roomDataPath = "/roomData/data";
   static const _lastMovesPath = "/lastMoves";
 
   ///Rooms MetaData
-  static Stream<List<OnlineRoomMetaData>> getRoomsMetaData(
-      BuildContext context) {
+  static Stream<List<OnlineRoomMetaData>> getRoomsMetaData(BuildContext context) {
     final user = _getUser(context);
-    final snapshots =
-        _rooms.where('players', arrayContains: user.uid).snapshots();
+    final snapshots = _rooms.where('players', arrayContains: user.uid).snapshots();
     final stream = snapshots.map<List<OnlineRoomMetaData>>((elem) {
       List<OnlineRoomMetaData> res = [];
       for (var snapshot in elem.docs) {
         final data = snapshot.data();
-        if (data != null)
-          res.add(OnlineRoomMetaData.fromMap(data, snapshot.id));
+        if (data != null) res.add(OnlineRoomMetaData.fromMap(data, snapshot.id));
       }
       return res;
     });
@@ -84,8 +81,7 @@ abstract class Networks {
     return roomData;
   }
 
-  static Future<RoomData> createNewRoomData(
-      OnlineRoomMetaData metaData, String playerId) async {
+  static Future<RoomData> createNewRoomData(OnlineRoomMetaData metaData, String playerId) async {
     if (metaData.id == null) throw 'corrupted metaData';
     await _rooms.doc(metaData.id).update({
       "players": FieldValue.arrayUnion([playerId]),
@@ -114,11 +110,9 @@ abstract class Networks {
     };
 
     if (roomData.lastMoves.last.playerIdTurn == roomData.whitePlayer.id)
-      roomDataUpdate[RoomDataLabels.whiteTotalDuration] =
-          roomData.whiteTotalDuration.inSeconds;
+      roomDataUpdate[RoomDataLabels.whiteTotalDuration] = roomData.whiteTotalDuration.inSeconds;
     else
-      roomDataUpdate[RoomDataLabels.blackTotalDuration] =
-          roomData.blackTotalDuration.inSeconds;
+      roomDataUpdate[RoomDataLabels.blackTotalDuration] = roomData.blackTotalDuration.inSeconds;
 
     batch.update(_rooms.doc('${roomData.id}$_roomDataPath'), roomDataUpdate);
 
@@ -145,5 +139,16 @@ abstract class Networks {
     final user = provider.auth.currentUser;
     if (user == null) throw "User not logged in";
     return user;
+  }
+
+  //chat
+  static Future sendMessage(ChatMessage _chatMessage, String roomId) async {
+    try {
+      await _rooms.doc('$roomId$_roomDataPath').update({
+        RoomDataLabels.chats: FieldValue.arrayUnion([_chatMessage.toMap()])
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 }
