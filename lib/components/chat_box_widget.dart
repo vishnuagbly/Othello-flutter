@@ -32,6 +32,7 @@ class _ChatBoxWidgetState extends State<ChatBoxWidget> {
       uid: currentUser.uid,
       timestamp: DateTime.now(),
     );
+    chatController.clear();
     try {
       await Networks.sendMessage(_chatMessage, widget._roomData.id);
     } catch (e) {
