@@ -73,6 +73,11 @@ class ChatsListView extends StatelessWidget {
           }
           final _streamRoomData = RoomData.fromMap(snapshot.data!.data()!);
           final List<ChatMessage> _chats = _streamRoomData.chats;
+          WidgetsBinding.instance!.addPostFrameCallback((_) {
+            if (_controller.hasClients) {
+              _controller.jumpTo(_controller.position.maxScrollExtent);
+            } else {}
+          });
           return ListView.builder(
             padding: const EdgeInsets.only(top: 10),
             itemCount: _chats.length,
