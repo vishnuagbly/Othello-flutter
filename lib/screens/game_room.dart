@@ -11,6 +11,7 @@ import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info.dart';
 import 'package:othello/objects/room_data.dart';
 import 'package:othello/screens/chat_screen.dart';
+import 'package:othello/utils/networks.dart';
 import 'package:provider/provider.dart';
 
 class GameRoom extends StatefulWidget {
@@ -98,12 +99,14 @@ class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin
                     resetGame();
                   },
                 ),
-                IconButton(
-                  icon: Icon(Icons.chat_outlined),
-                  onPressed: () {
-                    Navigator.pushNamed(context, ChatScreen.routeName, arguments: widget.roomData);
-                  },
-                )
+                if (_gameInfo.roomData.isOnline)
+                  IconButton(
+                    icon: Icon(Icons.chat_outlined),
+                    onPressed: () {
+                      Navigator.pushNamed(context, ChatScreen.routeName,
+                          arguments: widget.roomData);
+                    },
+                  )
               ],
             )
           : null,
