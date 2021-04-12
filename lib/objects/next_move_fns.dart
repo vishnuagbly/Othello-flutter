@@ -11,7 +11,7 @@ abstract class NextMoveFns {
     },
     onlineId: _onlineNextMoveFn,
     offlineDelayedTempId: (roomData, id) async {
-      await Future.delayed(Duration(hours: 3));
+      await Future.delayed(Duration(seconds: 1));
       return roomData.getPossibleMovesList().first;
     }
   };
