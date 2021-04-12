@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:othello/components/chat_box_widget.dart';
 import 'package:othello/components/chat_bubble.dart';
 import 'package:othello/objects/chat_message.dart';
@@ -8,6 +9,7 @@ import 'package:othello/objects/room_data.dart';
 import 'package:othello/utils/networks.dart';
 
 late User currentUser;
+final _controller = ScrollController();
 
 class ChatScreen extends StatefulWidget {
   static const routeName = '/chat-screen';
@@ -39,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('${_roomData.id}'),
+          title: Text('Chat'),
         ),
         backgroundColor: Colors.transparent,
         body: Column(
@@ -74,6 +76,8 @@ class ChatsListView extends StatelessWidget {
           return ListView.builder(
             padding: const EdgeInsets.only(top: 10),
             itemCount: _chats.length,
+            physics: BouncingScrollPhysics(),
+            controller: _controller,
             itemBuilder: (_, index) {
               return ChatBubble(
                 isSender: _checkIsSender(_chats[index].uid),

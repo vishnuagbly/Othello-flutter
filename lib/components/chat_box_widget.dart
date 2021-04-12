@@ -7,8 +7,9 @@ import 'package:othello/utils/globals.dart';
 import 'package:othello/utils/networks.dart';
 
 class ChatBoxWidget extends StatefulWidget {
-  ChatBoxWidget(this._roomData);
+  ChatBoxWidget(this._roomData, this.scrollController);
   final RoomData _roomData;
+  final ScrollController scrollController;
   @override
   _ChatBoxWidgetState createState() => _ChatBoxWidgetState();
 }
@@ -38,6 +39,7 @@ class _ChatBoxWidgetState extends State<ChatBoxWidget> {
     } catch (e) {
       throw e;
     }
+    widget.scrollController.jumpTo(widget.scrollController.position.maxScrollExtent);
   }
 
   @override
