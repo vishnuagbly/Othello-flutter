@@ -31,7 +31,7 @@ class _CustomButtonState extends State<CustomButton> {
     return Stack(
       children: [
         Container(
-          height: Globals.maxScreenWidth * 0.15,
+          height: Globals.maxScreenWidth * 0.16,
           padding: EdgeInsets.only(
             left: Globals.maxScreenWidth * 0.1,
             top: Globals.maxScreenWidth * 0.041,
@@ -44,7 +44,8 @@ class _CustomButtonState extends State<CustomButton> {
                 padding: EdgeInsets.zero,
                 textStyle: GoogleFonts.montserrat(
                   color: Colors.white,
-                  fontSize: Globals.maxScreenWidth * 0.03,
+                  fontSize: Globals.maxScreenWidth * 0.04,
+                  fontWeight: FontWeight.w700,
                 )),
             onPressed: () {
               setState(() {

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/components/custom_button.dart';
 import 'package:othello/components/side_drawer.dart';
 import 'package:othello/objects/profile.dart';
@@ -54,59 +55,79 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     Globals.setMediaQueryData(context);
-    return Scaffold(
-      drawer: SideDrawer(),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ColorFiltered(
-                colorFilter: ColorFilter.mode(Colors.grey, BlendMode.modulate),
-                child: GameRoom.offlineCvC(),
-              ),
-              SizedBox(
-                height: 40,
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomButton(
-                        text: "vs Computer",
-                        onPressed: () {
-                          Navigator.pushNamed(
-                              context, GameRoom.offlinePvCRouteName);
-                        },
-                        width: Globals.maxScreenWidth * 0.3,
-                      ),
-                      SizedBox(width: Globals.maxScreenWidth * 0.06),
-                      CustomButton(
-                        text: "Pass N Play",
-                        onPressed: () {
-                          Navigator.pushNamed(
-                              context, GameRoom.offlinePvPRouteName);
-                        },
-                        width: Globals.maxScreenWidth * 0.3,
-                        white: false,
-                      ),
-                    ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        image: DecorationImage(
+          image: AssetImage("assets/othello-background.jpg"),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.black54,
+        drawer: SideDrawer(),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Othello",
+                  style: GoogleFonts.montserrat(
+                    fontSize: Globals.maxScreenWidth * 0.17,
+                    fontWeight: FontWeight.w700,
                   ),
-                  CustomButton(
-                    onPressed: () async {
-                      if (user == null)
-                        Navigator.pushNamed(context, SignUpScreen.routeName);
-                      else
-                        Navigator.pushNamed(context, OnlineRooms.routeName);
-                    },
-                    width: Globals.maxScreenWidth * 0.3,
-                    text: 'Online',
+                ),
+                SizedBox(height: 20),
+                Container(
+                  width: Globals.maxScreenWidth * 0.8,
+                  child: FittedBox(
+                    child: GameRoom.offlineCvC(),
                   ),
-                ],
-              ),
-            ],
+                ),
+                SizedBox(
+                  height: 40,
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomButton(
+                          text: "vs Computer",
+                          onPressed: () {
+                            Navigator.pushNamed(
+                                context, GameRoom.offlinePvCRouteName);
+                          },
+                          width: Globals.maxScreenWidth * 0.3,
+                        ),
+                        SizedBox(width: Globals.maxScreenWidth * 0.06),
+                        CustomButton(
+                          text: "Pass N Play",
+                          onPressed: () {
+                            Navigator.pushNamed(
+                                context, GameRoom.offlinePvPRouteName);
+                          },
+                          width: Globals.maxScreenWidth * 0.3,
+                          white: false,
+                        ),
+                      ],
+                    ),
+                    CustomButton(
+                      onPressed: () async {
+                        if (user == null)
+                          Navigator.pushNamed(context, SignUpScreen.routeName);
+                        else
+                          Navigator.pushNamed(context, OnlineRooms.routeName);
+                      },
+                      width: Globals.maxScreenWidth * 0.3,
+                      text: 'Online',
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

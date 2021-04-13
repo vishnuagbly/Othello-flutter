@@ -19,8 +19,8 @@ class GameRoom extends StatefulWidget {
 
   GameRoom(this.roomData, {this.onlyBoard = false});
 
-  GameRoom.offlineCvC()
-      : this.roomData = RoomData.offlineCvC(),
+  GameRoom.offlineCvC({int length = 8, int height = 8})
+      : this.roomData = RoomData.offlineCvC(length: length, height: height),
         this.onlyBoard = true;
 
   GameRoom.offlinePvP({

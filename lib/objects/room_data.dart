@@ -191,14 +191,14 @@ class RoomData extends ChangeNotifier with Savable {
     );
   }
 
-  factory RoomData.offlineCvC() {
+  factory RoomData.offlineCvC({int length = 8, int height = 8}) {
     return RoomData._raw(
       id: Globals.uuid.v1(),
       hiveKey: null,
       blackPlayer: Player(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
       whitePlayer: Player(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
-      length: 8,
-      height: 12,
+      length: length,
+      height: height,
     );
   }
 
