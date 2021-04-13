@@ -1,4 +1,5 @@
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:othello/screens/chat_screen.dart';
 import 'package:othello/screens/enter_room.dart';
 import 'package:othello/screens/enter_name.dart';
 import 'package:othello/screens/game_room.dart';
@@ -31,5 +32,6 @@ class AppModule extends Module {
     ChildRoute(EnterName.routeName, child: (_, __) => EnterName()),
     ChildRoute(OnlineRooms.routeName + '/:id',
         child: (_, args) => EnterRoom(args.params['id'])),
+    ChildRoute(ChatScreen.routeName, child: (_, __) => ChatScreen()),
   ];
 }

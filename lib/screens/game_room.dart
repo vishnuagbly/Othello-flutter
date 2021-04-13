@@ -10,6 +10,8 @@ import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info.dart';
 import 'package:othello/objects/room_data.dart';
+import 'package:othello/screens/chat_screen.dart';
+import 'package:othello/utils/networks.dart';
 import 'package:provider/provider.dart';
 
 class GameRoom extends StatefulWidget {
@@ -25,8 +27,7 @@ class GameRoom extends StatefulWidget {
   GameRoom.offlinePvC({bool resetGame = false})
       : this.roomData = RoomData.offlinePvC(resetGame: resetGame);
 
-  GameRoom.fromKey(String key)
-      : this.roomData = RoomData.fromKey(key, resetGame: true);
+  GameRoom.fromKey(String key) : this.roomData = RoomData.fromKey(key, resetGame: true);
 
   final RoomData roomData;
 
@@ -34,8 +35,7 @@ class GameRoom extends StatefulWidget {
   _GameRoomState createState() => _GameRoomState();
 }
 
-class _GameRoomState extends State<GameRoom>
-    with SingleTickerProviderStateMixin {
+class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin {
   late GameInfo _gameInfo;
   late List<Widget> mainStack;
 
@@ -47,7 +47,6 @@ class _GameRoomState extends State<GameRoom>
   }
 
   void _initStack() {
-
     mainStack = [
       Column(
         children: List.generate(
@@ -58,8 +57,7 @@ class _GameRoomState extends State<GameRoom>
                       (j) => Piece(
                             _gameInfo.cellWidth,
                             initValue: _gameInfo.board[i][j],
-                            onCreation: (state) =>
-                                _gameInfo.pieceStates[i][j] = state,
+                            onCreation: (state) => _gameInfo.pieceStates[i][j] = state,
                             onTap: _gameInfo.onTapOnPiece(i, j, false, true),
                           )),
                 )),
@@ -84,10 +82,8 @@ class _GameRoomState extends State<GameRoom>
   }
 
   void resetGame() {
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}',
-      ModalRoute.withName('/'));
+    Navigator.pushNamedAndRemoveUntil(context,
+        '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}', ModalRoute.withName('/'));
   }
 
   @override
@@ -102,7 +98,15 @@ class _GameRoomState extends State<GameRoom>
                   onPressed: () {
                     resetGame();
                   },
-                )
+                ),
+                if (_gameInfo.roomData.isOnline)
+                  IconButton(
+                    icon: Icon(Icons.chat_outlined),
+                    onPressed: () {
+                      Navigator.pushNamed(context, ChatScreen.routeName,
+                          arguments: widget.roomData);
+                    },
+                  )
               ],
             )
           : null,
@@ -178,8 +182,7 @@ class ScoreBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      double height =
-          min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
+      double height = min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
       return Align(
         alignment: aboveBoard ? Alignment.bottomRight : Alignment.topLeft,
         child: Column(
@@ -193,8 +196,7 @@ class ScoreBoard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image(
-                    image: AssetImage(
-                        'assets/${forWhite ? 'flip_0' : 'flip_1'}/frame_0.png'),
+                    image: AssetImage('assets/${forWhite ? 'flip_0' : 'flip_1'}/frame_0.png'),
                     width: height * 0.8,
                   ),
                   Icon(Icons.close_rounded),
@@ -239,8 +241,7 @@ class _ChanceTimerState extends State<ChanceTimer> {
   Timer? _timer;
 
   void toggleTimer() {
-    if (Provider.of<RoomData>(context, listen: false).isWhiteTurn ==
-        widget.forWhite)
+    if (Provider.of<RoomData>(context, listen: false).isWhiteTurn == widget.forWhite)
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         continueTimer();
       });
@@ -271,9 +272,8 @@ class _ChanceTimerState extends State<ChanceTimer> {
 
   @override
   void initState() {
-    _time = DateTime(DateTime.now().year).add(
-        Provider.of<RoomData>(context, listen: false)
-            .getTotalDuration(widget.forWhite));
+    _time = DateTime(DateTime.now().year)
+        .add(Provider.of<RoomData>(context, listen: false).getTotalDuration(widget.forWhite));
     Provider.of<RoomData>(context, listen: false).addListener(toggleTimer);
     toggleTimer();
     super.initState();
@@ -282,9 +282,7 @@ class _ChanceTimerState extends State<ChanceTimer> {
   @override
   Widget build(BuildContext context) {
     return Text(
-      _time.hour == 0
-          ? DateFormat.ms().format(_time)
-          : DateFormat.Hms().format(_time),
+      _time.hour == 0 ? DateFormat.ms().format(_time) : DateFormat.Hms().format(_time),
       style: GoogleFonts.montserrat(
         fontSize: widget.fontSize,
         fontWeight: FontWeight.w400,
