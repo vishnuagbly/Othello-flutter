@@ -12,7 +12,10 @@ abstract class NextMoveFns {
     onlineId: _onlineNextMoveFn,
     offlineDelayedTempId: (roomData, id) async {
       await Future.delayed(Duration(seconds: 1));
-      return roomData.getPossibleMovesList().first;
+      final moves = roomData.getPossibleMovesList();
+      final rand = Random(DateTime.now().second);
+      final index = rand.nextInt(moves.length);
+      return moves[index];
     }
   };
 
