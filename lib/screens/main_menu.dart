@@ -100,7 +100,7 @@ class _MainMenuState extends State<MainMenu> {
                             Navigator.pushNamed(
                                 context, GameRoom.offlinePvCRouteName);
                           },
-                          width: Globals.maxScreenWidth * 0.3,
+                          width: Globals.maxScreenWidth * 0.34,
                         ),
                         SizedBox(width: Globals.maxScreenWidth * 0.06),
                         CustomButton(
@@ -109,7 +109,7 @@ class _MainMenuState extends State<MainMenu> {
                             Navigator.pushNamed(
                                 context, GameRoom.offlinePvPRouteName);
                           },
-                          width: Globals.maxScreenWidth * 0.3,
+                          width: Globals.maxScreenWidth * 0.34,
                           white: false,
                         ),
                       ],
@@ -121,7 +121,7 @@ class _MainMenuState extends State<MainMenu> {
                         else
                           Navigator.pushNamed(context, OnlineRooms.routeName);
                       },
-                      width: Globals.maxScreenWidth * 0.3,
+                      width: Globals.maxScreenWidth * 0.34,
                       text: 'Online',
                     ),
                   ],
