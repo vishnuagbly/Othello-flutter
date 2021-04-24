@@ -50,6 +50,7 @@ dependencies:
   flutter_phoenix: ^1.0.0
   google_fonts: ^2.0.0
   intl: ^0.17.0
+  bubble: ^1.2.1
 
   #dynamic url routing(for web deep links)
   flutter_modular: ^3.0.2+1
@@ -88,6 +89,7 @@ flutter:
     - assets/
     - assets/flip_0/
     - assets/flip_1/
+    - assets/images/chat_bg.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

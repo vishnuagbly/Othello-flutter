@@ -52,8 +52,7 @@ class _SideDrawerState extends State<SideDrawer> {
               leading: FaIcon(FontAwesomeIcons.signOutAlt),
               title: Text('Logout'),
               onTap: () async {
-                final provider =
-                    Provider.of<GoogleSignInProvider>(context, listen: false);
+                final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
                 await provider.logout(context);
               },
             ),
