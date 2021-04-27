@@ -38,8 +38,8 @@ class Profile extends Savable {
             await Navigator.pushNamed<String>(context, EnterName.routeName);
         if (name == null) throw "Name is null";
         await user.updateProfile(displayName: name);
-      }
-      __globalProfile = Profile.fromUser(user);
+      } else
+        __globalProfile = Profile.fromUser(user);
     } else
       __globalProfile = null;
     if (__globalProfile != null) Networks.createProfile(__globalProfile!);

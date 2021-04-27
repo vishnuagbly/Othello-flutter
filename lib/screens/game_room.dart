@@ -11,7 +11,6 @@ import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info.dart';
 import 'package:othello/objects/room_data.dart';
 import 'package:othello/screens/chat_screen.dart';
-import 'package:othello/utils/networks.dart';
 import 'package:provider/provider.dart';
 
 class GameRoom extends StatefulWidget {
@@ -19,29 +18,42 @@ class GameRoom extends StatefulWidget {
   static const offlinePvPRouteName = '/game_room/offline_pvp';
   static const fromKeyRouteName = '/game_room/from_key';
 
-  GameRoom(this.roomData);
+  GameRoom(this.roomData, {this.onlyBoard = false});
 
-  GameRoom.offlinePvP({bool resetGame = false})
-      : this.roomData = RoomData.offlinePvP(resetGame: resetGame);
+  GameRoom.offlineCvC({int length = 8, int height = 8})
+      : this.roomData = RoomData.offlineCvC(length: length, height: height),
+        this.onlyBoard = true;
 
-  GameRoom.offlinePvC({bool resetGame = false})
-      : this.roomData = RoomData.offlinePvC(resetGame: resetGame);
+  GameRoom.offlinePvP({
+    bool resetGame = false,
+    this.onlyBoard = false,
+  }) : this.roomData = RoomData.offlinePvP(resetGame: resetGame);
 
-  GameRoom.fromKey(String key) : this.roomData = RoomData.fromKey(key, resetGame: true);
+  GameRoom.offlinePvC({
+    bool resetGame = false,
+    this.onlyBoard = false,
+  }) : this.roomData = RoomData.offlinePvC(resetGame: resetGame);
+
+  GameRoom.fromKey(
+    String key, {
+    this.onlyBoard = false,
+  }) : this.roomData = RoomData.fromKey(key, resetGame: true);
 
   final RoomData roomData;
+  final bool onlyBoard;
 
   @override
   _GameRoomState createState() => _GameRoomState();
 }
 
-class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin {
+class _GameRoomState extends State<GameRoom>
+    with SingleTickerProviderStateMixin {
   late GameInfo _gameInfo;
   late List<Widget> mainStack;
 
   @override
   void initState() {
-    _gameInfo = GameInfo(widget.roomData, context);
+    _gameInfo = GameInfo(widget.roomData, context, autoReset: widget.onlyBoard);
     _initStack();
     super.initState();
   }
@@ -57,8 +69,9 @@ class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin
                       (j) => Piece(
                             _gameInfo.cellWidth,
                             initValue: _gameInfo.board[i][j],
-                            onCreation: (state) => _gameInfo.pieceStates[i][j] = state,
-                            onTap: _gameInfo.onTapOnPiece(i, j, false, true),
+                            onCreation: (state) =>
+                                _gameInfo.pieceStates[i][j] = state,
+                            onTap: _gameInfo.onTapOnPiece(i, j),
                           )),
                 )),
       ),
@@ -82,35 +95,35 @@ class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin
   }
 
   void resetGame() {
-    Navigator.pushNamedAndRemoveUntil(context,
-        '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}', ModalRoute.withName('/'));
+    Navigator.pushNamedAndRemoveUntil(
+        context,
+        '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}',
+        ModalRoute.withName('/'));
   }
 
   @override
   Widget build(BuildContext context) {
+    final board = Container(
+      color: Colors.grey[850],
+      padding: const EdgeInsets.all(10),
+      child: Container(
+        width: _gameInfo.cellWidth * _gameInfo.boardLength,
+        height: _gameInfo.cellWidth * _gameInfo.boardHeight,
+        color: Colors.green[600],
+        child: Stack(
+          children: mainStack,
+        ),
+      ),
+    );
+
+    if (widget.onlyBoard)
+      return ChangeNotifierProvider<RoomData>(
+        create: (context) => _gameInfo.roomData,
+        child: board,
+      );
+
     return Scaffold(
-      appBar: !kIsWeb
-          ? AppBar(
-              title: Text("Othello Game"),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.replay),
-                  onPressed: () {
-                    resetGame();
-                  },
-                ),
-                if (_gameInfo.roomData.isOnline)
-                  IconButton(
-                    icon: Icon(Icons.chat_outlined),
-                    onPressed: () {
-                      Navigator.pushNamed(context, ChatScreen.routeName,
-                          arguments: widget.roomData);
-                    },
-                  )
-              ],
-            )
-          : null,
-      backgroundColor: Colors.grey[850],
+      backgroundColor: Colors.black,
       body: ChangeNotifierProvider<RoomData>(
         create: (context) => _gameInfo.roomData,
         child: Padding(
@@ -122,18 +135,7 @@ class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin
                   child: ScoreBoard(),
                 ),
               ),
-              Container(
-                color: Colors.black,
-                padding: const EdgeInsets.all(10),
-                child: Container(
-                  width: _gameInfo.cellWidth * _gameInfo.boardLength,
-                  height: _gameInfo.cellWidth * _gameInfo.boardHeight,
-                  color: Colors.green[600],
-                  child: Stack(
-                    children: mainStack,
-                  ),
-                ),
-              ),
+              board,
               Expanded(
                 child: Container(
                   child: ScoreBoard(aboveBoard: false, forWhite: false),
@@ -151,18 +153,21 @@ class _GameRoomState extends State<GameRoom> with SingleTickerProviderStateMixin
             child: Icon(Icons.undo),
             onPressed: _gameInfo.undo,
           ),
-          if (kIsWeb)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(width: 10),
-                FloatingActionButton(
-                  heroTag: "reset_tag",
-                  onPressed: resetGame,
-                  child: Icon(Icons.replay),
-                ),
-              ],
-            ),
+          SizedBox(width: 10),
+          FloatingActionButton(
+            heroTag: "reset_tag",
+            onPressed: resetGame,
+            child: Icon(Icons.replay),
+          ),
+          SizedBox(width: 10),
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.pushNamed(context, ChatScreen.routeName,
+                  arguments: widget.roomData);
+            },
+            heroTag: "open_chat_screen",
+            child: Icon(Icons.chat),
+          ),
         ],
       ),
     );
@@ -182,7 +187,8 @@ class ScoreBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      double height = min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
+      double height =
+          min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
       return Align(
         alignment: aboveBoard ? Alignment.bottomRight : Alignment.topLeft,
         child: Column(
@@ -196,7 +202,8 @@ class ScoreBoard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image(
-                    image: AssetImage('assets/${forWhite ? 'flip_0' : 'flip_1'}/frame_0.png'),
+                    image: AssetImage(
+                        'assets/${forWhite ? 'flip_0' : 'flip_1'}/frame_0.png'),
                     width: height * 0.8,
                   ),
                   Icon(Icons.close_rounded),
@@ -241,7 +248,8 @@ class _ChanceTimerState extends State<ChanceTimer> {
   Timer? _timer;
 
   void toggleTimer() {
-    if (Provider.of<RoomData>(context, listen: false).isWhiteTurn == widget.forWhite)
+    if (Provider.of<RoomData>(context, listen: false).isWhiteTurn ==
+        widget.forWhite)
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         continueTimer();
       });
@@ -272,8 +280,9 @@ class _ChanceTimerState extends State<ChanceTimer> {
 
   @override
   void initState() {
-    _time = DateTime(DateTime.now().year)
-        .add(Provider.of<RoomData>(context, listen: false).getTotalDuration(widget.forWhite));
+    _time = DateTime(DateTime.now().year).add(
+        Provider.of<RoomData>(context, listen: false)
+            .getTotalDuration(widget.forWhite));
     Provider.of<RoomData>(context, listen: false).addListener(toggleTimer);
     toggleTimer();
     super.initState();
@@ -282,7 +291,9 @@ class _ChanceTimerState extends State<ChanceTimer> {
   @override
   Widget build(BuildContext context) {
     return Text(
-      _time.hour == 0 ? DateFormat.ms().format(_time) : DateFormat.Hms().format(_time),
+      _time.hour == 0
+          ? DateFormat.ms().format(_time)
+          : DateFormat.Hms().format(_time),
       style: GoogleFonts.montserrat(
         fontSize: widget.fontSize,
         fontWeight: FontWeight.w400,
