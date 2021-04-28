@@ -21,17 +21,23 @@ class GoogleSignupButton extends StatelessWidget {
           color: Colors.white,
           size: Globals.maxScreenWidth * 0.05,
         ),
-        label: Text(
-          'Sign In With Google',
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(width: 10),
+            Text(
+              'Sign In With Google',
+            ),
+          ],
         ),
         style: OutlinedButton.styleFrom(
           shape: StadiumBorder(),
           backgroundColor: Colors.red,
           textStyle: GoogleFonts.montserrat(
             fontWeight: FontWeight.w500,
-            fontSize: Globals.maxScreenWidth * 0.04,
+            fontSize: Globals.maxScreenWidth * 0.045,
           ),
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           primary: Colors.white,
         ),
       ),

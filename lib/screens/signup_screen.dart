@@ -43,6 +43,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 30),
                 GoogleSignupButton(),
+                SizedBox(height: 10),
                 PhoneSignUpButton(),
               ],
             ),
