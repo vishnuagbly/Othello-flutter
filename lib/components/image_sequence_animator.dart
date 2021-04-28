@@ -245,11 +245,12 @@ class ImageSequenceAnimatorState extends State<ImageSequenceAnimator> with Singl
 
   @override
   void dispose() {
+    if (_animationController?.isDismissed ?? true) return;
     _reset();
 
-    _animationController!.removeListener(animationListener);
-    _animationController!.removeStatusListener(animationStatusListener);
-    _animationController!.dispose();
+    _animationController?.removeListener(animationListener);
+    _animationController?.removeStatusListener(animationStatusListener);
+    _animationController?.dispose();
 
     super.dispose();
   }
@@ -342,8 +343,8 @@ class ImageSequenceAnimatorState extends State<ImageSequenceAnimator> with Singl
   }
 
   void _reset() {
-    _animationController!.value = 0;
-    _animationController!.stop(canceled: true);
+    _animationController?.value = 0;
+    _animationController?.stop(canceled: true);
     _previousFrame = 0;
     _currentOfflineFrame = null;
   }

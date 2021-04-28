@@ -38,12 +38,14 @@ class PieceState extends State<Piece> {
   }
 
   void stateFn({bool operate = true}) {
+    if (!mounted) return;
     setState(() {
       if (operate) _value = (_value + 1) % 4;
     });
   }
 
   void set(int boardValue) {
+    if (!mounted) return;
     setState(() {
       _value = _valueFromBoardValue(boardValue);
     });

@@ -18,6 +18,7 @@ class FlipPiece extends StatefulWidget {
 
 class FlipPieceState extends State<FlipPiece> {
   bool flipping = false;
+  ImageSequenceAnimatorState? _state;
 
   void flip() {
     _flipStateFn();
@@ -28,6 +29,12 @@ class FlipPieceState extends State<FlipPiece> {
   void initState() {
     (widget.onCreation ?? (_) {})(this);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (mounted) _state?.dispose();
+    super.dispose();
   }
 
   @override
@@ -43,7 +50,7 @@ class FlipPieceState extends State<FlipPiece> {
   }
 
   Widget _flipAnimation() {
-    final _onFinishPlaying = (state) {
+    final _onFinishPlaying = (ImageSequenceAnimatorState state) {
       if (_pieceState.value % 2 == 0) return;
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         _flipStateFn();
@@ -63,7 +70,9 @@ class FlipPieceState extends State<FlipPiece> {
             "png",
             19,
             fps: 50,
+            key: UniqueKey(),
             waitUntilCacheIsComplete: true,
+            onReadyToPlay: (state) => _state = state,
             onFinishPlaying: _onFinishPlaying,
           ),
         ),
@@ -73,6 +82,13 @@ class FlipPieceState extends State<FlipPiece> {
 
   void _flipStateFn({operate = true}) {
     if (operate) flipping = !flipping;
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void set() {
+    if (!mounted) return;
+    flipping = false;
     setState(() {});
   }
 
