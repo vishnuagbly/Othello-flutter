@@ -41,3 +41,22 @@ We have tried to make the process simple. Here's what you need to do.
     $ flutter pub get
     ```
 3. Start developing!
+
+# How to Directly Open App
+
+## Open app on an Android Device
+
+To open our app in your android phone follow following steps:
+
+1. Download ```Othello League.apk``` to your phone root directory.
+2. Open phone, goto settings and search "Unknown apps".
+3. Allow ```Install Unknown Apps```.
+4. NOw, Open file storage and direct to the ```Othello League.apk```.
+5. Tap on ```Othello League.apk``` and then click on ```Install```.
+6. Now go to apps and tap on Othello League Icon.
+
+## Open app on a web browser
+
+Go to the following link:- [Click Here](https://othello-league.netlify.com)
+
+Note:- Web version of this app is currently not up to date with the Android Version.
