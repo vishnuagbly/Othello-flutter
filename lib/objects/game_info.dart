@@ -148,6 +148,9 @@ class GameInfo {
     for (int i = 0; i < _roomData.height; i++)
       for (int j = 0; j < _roomData.length; j++)
         pieceStates[i][j]?.set(board[i][j]);
+    for (int i = 0; i < _roomData.height; i++)
+      for (int j = 0; j < _roomData.length; j++)
+        flipPieceStates[i][j]?.set();
     makeNextTurn(gameEnded, debug: debug);
   }
 
