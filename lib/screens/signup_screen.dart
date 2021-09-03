@@ -37,6 +37,9 @@ class SignUpScreen extends StatelessWidget {
                 SizedBox(height: 20),
                 Container(
                   width: Globals.maxScreenWidth * 0.8,
+                  constraints: BoxConstraints(
+                    maxHeight: Globals.screenHeight * 0.5,
+                  ),
                   child: FittedBox(
                     child: GameRoom.offlineCvC(),
                   ),

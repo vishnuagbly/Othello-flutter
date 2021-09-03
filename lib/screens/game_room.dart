@@ -160,14 +160,15 @@ class _GameRoomState extends State<GameRoom>
             child: Icon(Icons.replay),
           ),
           SizedBox(width: 10),
-          FloatingActionButton(
-            onPressed: () {
-              Navigator.pushNamed(context, ChatScreen.routeName,
-                  arguments: widget.roomData);
-            },
-            heroTag: "open_chat_screen",
-            child: Icon(Icons.chat),
-          ),
+          if (_gameInfo.roomData.isOnline)
+            FloatingActionButton(
+              onPressed: () {
+                Navigator.pushNamed(context, ChatScreen.routeName,
+                    arguments: widget.roomData);
+              },
+              heroTag: "open_chat_screen",
+              child: Icon(Icons.chat),
+            ),
         ],
       ),
     );

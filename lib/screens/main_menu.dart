@@ -52,6 +52,17 @@ class _MainMenuState extends State<MainMenu> {
     }
   }
 
+  Widget get _onlineButton => CustomButton(
+        onPressed: () async {
+          if (user == null)
+            Navigator.pushNamed(context, SignUpScreen.routeName);
+          else
+            Navigator.pushNamed(context, OnlineRooms.routeName);
+        },
+        width: Globals.maxScreenWidth * 0.34,
+        text: 'Online',
+      );
+
   @override
   Widget build(BuildContext context) {
     Globals.setMediaQueryData(context);
@@ -81,6 +92,9 @@ class _MainMenuState extends State<MainMenu> {
                 SizedBox(height: 20),
                 Container(
                   width: Globals.maxScreenWidth * 0.8,
+                  constraints: BoxConstraints(
+                    maxHeight: Globals.screenHeight * 0.5,
+                  ),
                   child: FittedBox(
                     child: GameRoom.offlineCvC(),
                   ),
@@ -112,18 +126,14 @@ class _MainMenuState extends State<MainMenu> {
                           width: Globals.maxScreenWidth * 0.34,
                           white: false,
                         ),
+                        if (Globals.screenWidth > Globals.screenHeight) ...[
+                          SizedBox(width: Globals.maxScreenWidth * 0.06),
+                          _onlineButton,
+                        ]
                       ],
                     ),
-                    CustomButton(
-                      onPressed: () async {
-                        if (user == null)
-                          Navigator.pushNamed(context, SignUpScreen.routeName);
-                        else
-                          Navigator.pushNamed(context, OnlineRooms.routeName);
-                      },
-                      width: Globals.maxScreenWidth * 0.34,
-                      text: 'Online',
-                    ),
+                    if (Globals.screenWidth <= Globals.screenHeight)
+                      _onlineButton,
                   ],
                 ),
               ],
