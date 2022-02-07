@@ -6,7 +6,7 @@ class CommonAlertDialog extends AlertDialog {
   final String titleString;
   final Widget? content;
   final Icon? icon;
-  final Function? onPressed;
+  final void Function()? onPressed;
   final bool error;
 
   CommonAlertDialog(this.titleString,

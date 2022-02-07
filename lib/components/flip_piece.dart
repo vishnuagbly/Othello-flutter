@@ -9,7 +9,7 @@ class FlipPiece extends StatefulWidget {
   final double cellWidth;
   final int i;
   final int j;
-  final Function(FlipPieceState state)? onCreation;
+  final void Function(FlipPieceState state)? onCreation;
   final PieceState Function() getPieceStateFn;
 
   @override

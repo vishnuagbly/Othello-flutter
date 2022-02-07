@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 class Piece extends StatefulWidget {
   Piece(this.cellWidth, {this.onCreation, this.initValue = -1, this.onTap});
 
-  final Function(PieceState state)? onCreation;
-  final Function(PieceState state)? onTap;
+  final void Function(PieceState state)? onCreation;
+  final void Function(PieceState state)? onTap;
   final double cellWidth;
   final int initValue;
 
@@ -85,8 +85,8 @@ class PieceState extends State<Piece> {
       color: Colors.black,
       child: InkWell(
         onTap: () {
-          if (_value == -1 && possibleMove) {
-            (widget.onTap ?? () {})(this);
+          if (_value == -1 && possibleMove && widget.onTap != null) {
+            widget.onTap!(this);
           }
         },
         child: Container(
