@@ -9,7 +9,7 @@ import 'package:othello/utils/networks.dart';
 import 'chat_message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'move_data.dart';
 import 'player.dart';
 import 'savable.dart';
