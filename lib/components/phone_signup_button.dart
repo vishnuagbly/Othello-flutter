@@ -29,6 +29,7 @@ class PhoneSignUpButton extends StatelessWidget {
           ]
         ),
         style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
           shape: StadiumBorder(),
           backgroundColor: Colors.green,
           textStyle: GoogleFonts.montserrat(
@@ -36,7 +37,6 @@ class PhoneSignUpButton extends StatelessWidget {
             fontSize: Globals.maxScreenWidth * 0.045,
           ),
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          primary: Colors.white,
         ),
       ),
     );

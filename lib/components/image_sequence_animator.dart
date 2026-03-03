@@ -103,13 +103,13 @@ class ImageSequenceAnimator extends StatefulWidget {
       this.frameCount, {
         Key? key,
         this.fullPaths,
-        this.fps: 60,
-        this.isLooping: false,
-        this.isBoomerang: false,
-        this.isAutoPlay: true,
+        this.fps = 60,
+        this.isLooping = false,
+        this.isBoomerang = false,
+        this.isAutoPlay = true,
         this.color,
-        this.isOnline: false,
-        this.waitUntilCacheIsComplete: false,
+        this.isOnline = false,
+        this.waitUntilCacheIsComplete = false,
         this.cacheProgressIndicatorBuilder,
         this.onReadyToPlay,
         this.onStartPlaying,
@@ -287,7 +287,7 @@ class ImageSequenceAnimatorState extends State<ImageSequenceAnimator> with Singl
   }
 
   ///Use this function to play this [ImageSequenceAnimator].
-  void play({double from: -1.0}) {
+  void play({double from = -1.0}) {
     if (!_isReadyToPlay) return;
 
     if (!_animationController!.isAnimating && widget.onStartPlaying != null) widget.onStartPlaying!(this);
@@ -299,7 +299,7 @@ class ImageSequenceAnimatorState extends State<ImageSequenceAnimator> with Singl
   }
 
   ///Use this function to rewind this [ImageSequenceAnimator].
-  void rewind({double from: -1.0}) {
+  void rewind({double from = -1.0}) {
     if (!_isReadyToPlay) return;
 
     if (!_animationController!.isAnimating && widget.onStartPlaying != null) widget.onStartPlaying!(this);
@@ -318,7 +318,7 @@ class ImageSequenceAnimatorState extends State<ImageSequenceAnimator> with Singl
   }
 
   ///Only use either value or percentage.
-  void skip(double value, {double percentage: -1.0}) {
+  void skip(double value, {double percentage = -1.0}) {
     if (!_isReadyToPlay) return;
 
     if (percentage != -1.0)
