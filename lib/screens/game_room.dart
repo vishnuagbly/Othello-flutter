@@ -11,6 +11,7 @@ import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info.dart';
 import 'package:othello/objects/room_data.dart';
 import 'package:othello/screens/chat_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class GameRoom extends StatefulWidget {
@@ -95,10 +96,7 @@ class _GameRoomState extends State<GameRoom>
   }
 
   void resetGame() {
-    Navigator.pushNamedAndRemoveUntil(
-        context,
-        '${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}',
-        ModalRoute.withName('/'));
+    context.go('${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}');
   }
 
   @override
@@ -163,8 +161,7 @@ class _GameRoomState extends State<GameRoom>
           if (_gameInfo.roomData.isOnline)
             FloatingActionButton(
               onPressed: () {
-                Navigator.pushNamed(context, ChatScreen.routeName,
-                    arguments: widget.roomData);
+                context.push(ChatScreen.routeName, extra: widget.roomData);
               },
               heroTag: "open_chat_screen",
               child: Icon(Icons.chat),

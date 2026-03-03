@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/utils/globals.dart';
 
@@ -30,7 +31,7 @@ class EnterName extends StatelessWidget {
               },
               onFieldSubmitted: (text) {
                 if (!_formKey.currentState!.validate()) return;
-                Navigator.pop(context, text);
+                context.pop(text);
               },
             ),
           ),

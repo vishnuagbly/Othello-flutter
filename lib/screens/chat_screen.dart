@@ -13,13 +13,16 @@ final _controller = ScrollController();
 
 class ChatScreen extends StatefulWidget {
   static const routeName = '/chat-screen';
+
+  const ChatScreen({required this.roomData});
+
+  final RoomData roomData;
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late RoomData _roomData;
-
   @override
   void initState() {
     super.initState();
@@ -29,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _roomData = ModalRoute.of(context)?.settings.arguments as RoomData;
+    final _roomData = widget.roomData;
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(

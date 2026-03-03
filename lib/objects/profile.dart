@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:othello/objects/savable.dart';
 import 'package:othello/screens/enter_name.dart';
 import 'package:othello/utils/networks.dart';
@@ -35,7 +36,7 @@ class Profile extends Savable {
     if (user != null) {
       if (user.displayName == null) {
         String? name =
-            await Navigator.pushNamed<String>(context, EnterName.routeName);
+            await context.push<String>(EnterName.routeName);
         if (name == null) throw "Name is null";
         await user.updateProfile(displayName: name);
       } else

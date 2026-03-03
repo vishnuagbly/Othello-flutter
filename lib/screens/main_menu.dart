@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/components/custom_button.dart';
 import 'package:othello/components/side_drawer.dart';
@@ -23,7 +24,7 @@ class _MainMenuState extends State<MainMenu> {
   void initState() {
     FirebaseAuth.instance.userChanges().listen((user) async {
       this.user = user;
-      Navigator.popUntil(context, ModalRoute.withName('/'));
+      context.go('/');
       await Profile.setProfile(context, user);
     });
     initDynamicLinks();
@@ -36,8 +37,7 @@ class _MainMenuState extends State<MainMenu> {
       print("got link: $deepLink");
 
       if (deepLink != null) {
-        Navigator.popUntil(context, ModalRoute.withName('/'));
-        Navigator.pushNamed(context, deepLink.fragment);
+        context.go(deepLink.fragment);
       }
     }, onError: (OnLinkErrorException e) async {
       print('onLinkError');
@@ -48,16 +48,16 @@ class _MainMenuState extends State<MainMenu> {
     final deepLink = data?.link;
 
     if (deepLink != null) {
-      Navigator.pushNamed(context, deepLink.path);
+      context.go(deepLink.path);
     }
   }
 
   Widget get _onlineButton => CustomButton(
         onPressed: () async {
           if (user == null)
-            Navigator.pushNamed(context, SignUpScreen.routeName);
+            context.push(SignUpScreen.routeName);
           else
-            Navigator.pushNamed(context, OnlineRooms.routeName);
+            context.push(OnlineRooms.routeName);
         },
         width: Globals.maxScreenWidth * 0.34,
         text: 'Online',
@@ -111,8 +111,7 @@ class _MainMenuState extends State<MainMenu> {
                         CustomButton(
                           text: "vs Computer",
                           onPressed: () {
-                            Navigator.pushNamed(
-                                context, GameRoom.offlinePvCRouteName);
+                            context.push(GameRoom.offlinePvCRouteName);
                           },
                           width: Globals.maxScreenWidth * 0.34,
                         ),
@@ -120,8 +119,7 @@ class _MainMenuState extends State<MainMenu> {
                         CustomButton(
                           text: "Pass N Play",
                           onPressed: () {
-                            Navigator.pushNamed(
-                                context, GameRoom.offlinePvPRouteName);
+                            context.push(GameRoom.offlinePvPRouteName);
                           },
                           width: Globals.maxScreenWidth * 0.34,
                           white: false,

@@ -5,6 +5,7 @@ import 'package:othello/components/custom_pop_up_menu.dart';
 import 'package:othello/components/future_dialog.dart';
 import 'package:othello/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:othello/components/side_drawer.dart';
 import 'package:othello/objects/online_room_meta_data.dart';
 import 'package:othello/objects/profile.dart';
@@ -119,8 +120,7 @@ class RoomCard extends StatelessWidget {
         },
         onTap: () async {
           if (data.players.length >= 2) {
-            Navigator.popAndPushNamed(
-                context, '${OnlineRooms.routeName}/${data.id}');
+            context.pushReplacement('${OnlineRooms.routeName}/${data.id}');
             return;
           }
           if (data.id != null) await shareDynamicLink(context, data.id!);

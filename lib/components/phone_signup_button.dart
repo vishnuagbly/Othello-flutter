@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/screens/phone_input_screen.dart';
 import 'package:othello/utils/globals.dart';
@@ -11,7 +12,7 @@ class PhoneSignUpButton extends StatelessWidget {
       padding: EdgeInsets.all(4),
       child: OutlinedButton.icon(
         onPressed: () {
-          Navigator.of(context).pushNamed(PhoneInputScreen.routeName);
+          context.push(PhoneInputScreen.routeName);
         },
         icon: FaIcon(
           FontAwesomeIcons.phoneAlt,
