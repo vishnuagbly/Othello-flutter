@@ -1,10 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart';
 import 'package:othello/objects/profile.dart';
 
 class GoogleSignInProvider with ChangeNotifier {
-  final googleSignIn = GoogleSignIn();
+  final googleSignIn = GoogleSignIn(
+    params: const GoogleSignInParams(
+      scopes: ['openid', 'email', 'profile'],
+    ),
+  );
   final auth = FirebaseAuth.instance;
   late bool _isSigningIn;
 
@@ -24,17 +28,15 @@ class GoogleSignInProvider with ChangeNotifier {
   Future login() async {
     _isSigningIn = true;
 
-    final user = await googleSignIn.signIn();
+    final credentials = await googleSignIn.signIn();
 
-    if (user == null) {
+    if (credentials == null) {
       setSigningIn = false;
       return;
     } else {
-      final googleAuth = await user.authentication;
-
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+        accessToken: credentials.accessToken,
+        idToken: credentials.idToken,
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
@@ -43,10 +45,7 @@ class GoogleSignInProvider with ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
-    var currentUser = googleSignIn.currentUser;
-    if (currentUser != null) {
-      await googleSignIn.disconnect();
-    }
-    FirebaseAuth.instance.signOut();
+    await googleSignIn.signOut();
+    await FirebaseAuth.instance.signOut();
   }
 }
