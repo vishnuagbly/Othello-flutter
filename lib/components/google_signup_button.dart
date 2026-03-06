@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/providers/google_sign_in.dart';
 import 'package:othello/utils/globals.dart';
-import 'package:provider/provider.dart';
 
-class GoogleSignupButton extends StatelessWidget {
+class GoogleSignupButton extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: EdgeInsets.all(4),
       child: OutlinedButton.icon(
         onPressed: () {
-          final provider =
-              Provider.of<GoogleSignInProvider>(context, listen: false);
-          provider.login();
+          ref.read(googleSignInProvider.notifier).login();
         },
         icon: FaIcon(
           FontAwesomeIcons.google,
@@ -38,7 +36,7 @@ class GoogleSignupButton extends StatelessWidget {
             fontSize: Globals.maxScreenWidth * 0.045,
           ),
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          primary: Colors.white,
+          foregroundColor: Colors.white,
         ),
       ),
     );

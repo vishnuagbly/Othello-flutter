@@ -29,7 +29,7 @@ class OnlineRooms extends StatelessWidget {
                 await showDialog(
                     context: context,
                     builder: (context) => FutureDialog<void>(
-                          future: Networks.createNewRoom(context),
+                          future: Networks.createNewRoom(),
                           hasData: (_) =>
                               CommonAlertDialog("Successfully Created Room"),
                         ));
@@ -41,7 +41,7 @@ class OnlineRooms extends StatelessWidget {
         body: Padding(
           padding: const EdgeInsets.all(15),
           child: StreamBuilder<List<OnlineRoomMetaData>>(
-            stream: Networks.getRoomsMetaData(context),
+            stream: Networks.getRoomsMetaData(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting)
                 return Center(child: CircularProgressIndicator());

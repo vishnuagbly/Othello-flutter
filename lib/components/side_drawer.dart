@@ -1,22 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:othello/providers/google_sign_in.dart';
-import 'package:provider/provider.dart';
 
-class SideDrawer extends StatefulWidget {
+class SideDrawer extends ConsumerStatefulWidget {
   @override
-  _SideDrawerState createState() => _SideDrawerState();
+  ConsumerState<SideDrawer> createState() => _SideDrawerState();
 }
 
-class _SideDrawerState extends State<SideDrawer> {
+class _SideDrawerState extends ConsumerState<SideDrawer> {
   late User currentUser;
 
   @override
   void initState() {
     super.initState();
-    var auth = FirebaseAuth.instance;
-    currentUser = auth.currentUser!;
+    currentUser = FirebaseAuth.instance.currentUser!;
   }
 
   @override
@@ -52,8 +51,7 @@ class _SideDrawerState extends State<SideDrawer> {
               leading: FaIcon(FontAwesomeIcons.signOutAlt),
               title: Text('Logout'),
               onTap: () async {
-                final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
-                await provider.logout(context);
+                await ref.read(googleSignInProvider.notifier).logout();
               },
             ),
           ],

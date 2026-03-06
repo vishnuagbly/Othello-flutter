@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:othello/objects/chat_message.dart';
 import 'package:othello/objects/online_room_meta_data.dart';
 import 'package:othello/objects/profile.dart';
 import 'package:othello/objects/room_data.dart';
-import 'package:othello/providers/google_sign_in.dart';
-import 'package:provider/provider.dart';
 
 abstract class Networks {
   static final _firestore = FirebaseFirestore.instance;
@@ -17,8 +15,8 @@ abstract class Networks {
   static const _lastMovesPath = "/lastMoves";
 
   ///Rooms MetaData
-  static Stream<List<OnlineRoomMetaData>> getRoomsMetaData(BuildContext context) {
-    final user = _getUser(context);
+  static Stream<List<OnlineRoomMetaData>> getRoomsMetaData() {
+    final user = _getUser();
     final snapshots = _rooms.where('players', arrayContains: user.uid).snapshots();
     final stream = snapshots.map<List<OnlineRoomMetaData>>((elem) {
       List<OnlineRoomMetaData> res = [];
@@ -44,8 +42,8 @@ abstract class Networks {
     return room;
   }
 
-  static Future<void> createNewRoom(BuildContext context) async {
-    final user = _getUser(context);
+  static Future<void> createNewRoom() async {
+    final user = _getUser();
     await _rooms.add(OnlineRoomMetaData.newSingle(user.uid).toMap());
   }
 
@@ -133,10 +131,8 @@ abstract class Networks {
     await _profiles.doc(profile.id).set(profile.toMap());
   }
 
-  /// Utils
-  static _getUser(BuildContext context) {
-    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
-    final user = provider.auth.currentUser;
+  static User _getUser() {
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw "User not logged in";
     return user;
   }
