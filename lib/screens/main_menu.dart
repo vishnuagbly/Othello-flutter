@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,29 +26,7 @@ class _MainMenuState extends State<MainMenu> {
       context.go('/');
       await Profile.setProfile(context, user);
     });
-    initDynamicLinks();
     super.initState();
-  }
-
-  void initDynamicLinks() async {
-    FirebaseDynamicLinks.instance.onLink(onSuccess: (dynamicLink) async {
-      final deepLink = dynamicLink?.link;
-      print("got link: $deepLink");
-
-      if (deepLink != null) {
-        context.go(deepLink.fragment);
-      }
-    }, onError: (OnLinkErrorException e) async {
-      print('onLinkError');
-      print(e.message);
-    });
-
-    final data = await FirebaseDynamicLinks.instance.getInitialLink();
-    final deepLink = data?.link;
-
-    if (deepLink != null) {
-      context.go(deepLink.path);
-    }
   }
 
   Widget get _onlineButton => CustomButton(

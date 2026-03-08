@@ -11,8 +11,7 @@ import 'package:othello/objects/online_room_meta_data.dart';
 import 'package:othello/objects/profile.dart';
 import 'package:othello/utils/globals.dart';
 import 'package:othello/utils/networks.dart';
-import 'package:othello/utils/make_dynamic_link.dart'
-    if (dart.library.html) 'package:othello/utils/show_dynamic_link_dialog.dart';
+import 'package:othello/utils/make_dynamic_link.dart';
 
 class OnlineRooms extends StatelessWidget {
   static const routeName = '/online_rooms';
