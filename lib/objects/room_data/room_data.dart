@@ -7,9 +7,8 @@ import 'package:othello/utils/globals.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive_ce.dart';
-import 'move_data.dart';
-import 'player.dart';
-import 'savable.dart';
+import 'package:othello/objects/move_data/move_data.dart';
+import 'package:othello/objects/player/player.dart';
 
 part 'next_move_fns.dart';
 
@@ -84,7 +83,7 @@ abstract class RoomDataLabels {
       timestamp = 'timestamp';
 }
 
-class RoomData extends ChangeNotifier with Savable {
+class RoomData extends ChangeNotifier {
   RoomData._raw({
     required this.id,
     required this.hiveKey,
@@ -152,8 +151,8 @@ class RoomData extends ChangeNotifier with Savable {
     return RoomData._raw(
       id: hiveOfflinePvPKey,
       hiveKey: hiveOfflinePvPKey,
-      blackPlayer: Player(),
-      whitePlayer: Player(),
+      blackPlayer: Player.create(),
+      whitePlayer: Player.create(),
       whiteFirstTurn: whiteFirstTurn,
       height: height,
       length: length,
@@ -171,8 +170,9 @@ class RoomData extends ChangeNotifier with Savable {
       if (room != null) return room;
     }
 
-    Player computerPlayer = Player(nextMoveFnId: NextMoveFns.offlineTempId),
-        mainPlayer = Player();
+    Player computerPlayer =
+            Player.create(nextMoveFnId: NextMoveFns.offlineTempId),
+        mainPlayer = Player.create();
 
     return RoomData._raw(
       id: hiveOfflinePvCKey,
@@ -189,8 +189,10 @@ class RoomData extends ChangeNotifier with Savable {
     return RoomData._raw(
       id: Globals.uuid.v1(),
       hiveKey: null,
-      blackPlayer: Player(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
-      whitePlayer: Player(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
+      blackPlayer:
+          Player.create(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
+      whitePlayer:
+          Player.create(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
       length: length,
       height: height,
     );
@@ -207,7 +209,8 @@ class RoomData extends ChangeNotifier with Savable {
 
   factory RoomData.fromMap(Map<String, dynamic> map) {
     String playerTurnId = map[RoomDataLabels.playerIdTurn];
-    Player whitePlayer = Player.fromMap(map[RoomDataLabels.whitePlayer] ?? {});
+    Player whitePlayer = Player.fromJson(
+        Map<String, dynamic>.from(map[RoomDataLabels.whitePlayer] ?? {}));
     bool whiteTurn = playerTurnId == whitePlayer.id;
     DateTime timestamp;
     int length = map[RoomDataLabels.length] ?? 8,
@@ -230,14 +233,16 @@ class RoomData extends ChangeNotifier with Savable {
       length: length,
       height: height,
       hiveKey: map[RoomDataLabels.hiveKey] ?? hiveOfflinePvPKey,
-      blackPlayer: Player.fromMap(map[RoomDataLabels.blackPlayer] ?? {}),
+      blackPlayer: Player.fromJson(
+          Map<String, dynamic>.from(map[RoomDataLabels.blackPlayer] ?? {})),
       whitePlayer: whitePlayer,
       timestamp: timestamp,
       currentBoard: currentBoard,
-      lastMoves: MoveData.fromMaps(
-          map[RoomDataLabels.lastMoves]?.cast<Map>()?.toList() ?? [],
-          length,
-          height),
+      lastMoves: (map[RoomDataLabels.lastMoves] as List?)
+              ?.map((e) =>
+                  MoveData.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList() ??
+          [],
       blackTotalDuration:
           Duration(seconds: map[RoomDataLabels.blackTotalDuration] ?? 0),
       whiteTotalDuration:
@@ -311,11 +316,11 @@ class RoomData extends ChangeNotifier with Savable {
         RoomDataLabels.hiveKey: hiveKey,
         RoomDataLabels.length: length,
         RoomDataLabels.height: height,
-        RoomDataLabels.blackPlayer: blackPlayer.toMap(),
-        RoomDataLabels.whitePlayer: whitePlayer.toMap(),
+        RoomDataLabels.blackPlayer: blackPlayer.toJson(),
+        RoomDataLabels.whitePlayer: whitePlayer.toJson(),
         RoomDataLabels.playerIdTurn: __playerIdTurn,
         RoomDataLabels.currentBoard: _currentBoard.flat,
-        RoomDataLabels.lastMoves: lastMoves.toMaps(),
+        RoomDataLabels.lastMoves: lastMoves.map((e) => e.toJson()).toList(),
         RoomDataLabels.blackTotalDuration: _blackTotalDuration.inSeconds,
         RoomDataLabels.whiteTotalDuration: _whiteTotalDuration.inSeconds,
         RoomDataLabels.timestamp: _timestamp,
@@ -412,7 +417,7 @@ class RoomData extends ChangeNotifier with Savable {
 
   void _updateLastMoves({bool debug = false}) {
     if (debug) dev.log('isWhiteTurn: $isWhiteTurn', name: '_updateLastMoves');
-    final currentMove = MoveData(
+    final currentMove = MoveData.create(
         board: currentBoard,
         duration: DateTime.now().difference(_timestamp),
         playerIdTurn: _playerIdTurn,

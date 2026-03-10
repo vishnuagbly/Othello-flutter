@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:othello/objects/room_data.dart';
+import 'package:othello/objects/room_data/room_data.dart';
 import 'package:provider/provider.dart';
 
 class Piece extends StatefulWidget {

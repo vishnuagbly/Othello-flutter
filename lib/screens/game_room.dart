@@ -8,8 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
-import 'package:othello/objects/game_info.dart';
-import 'package:othello/objects/room_data.dart';
+import 'package:othello/objects/game_info/game_info.dart';
+import 'package:othello/objects/room_data/room_data.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
