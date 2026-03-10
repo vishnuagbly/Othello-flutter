@@ -1,5 +1,5 @@
-import 'dart:collection';
 import 'dart:developer';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +30,7 @@ class GameInfo {
 
   RoomData get roomData => _roomData;
 
-  UnmodifiableListView<UnmodifiableListView<int>> get board =>
-      _roomData.currentBoard;
+  IList<IList<int>> get board => _roomData.currentBoard;
 
   void _initValues() {
     final margin = 50;

@@ -1,7 +1,8 @@
-import 'dart:collection';
 import 'dart:math';
 import 'dart:developer' as dev;
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:othello/extensions/nested_list.dart';
 import 'package:othello/utils/globals.dart';
 
 import 'package:flutter/cupertino.dart';
@@ -12,60 +13,22 @@ import 'package:othello/objects/player/player.dart';
 
 part 'next_move_fns.dart';
 
-extension ExtensionList<int> on List<int> {
-  List<int> get shallowClone {
-    List<int> res = [];
-    for (int elem in this) res.add(elem);
-    return res;
-  }
+extension BoardExtensions on IList<IList<int>> {
+  List<int> get flat => expand((row) => row).toList();
 }
 
-extension boardExtensions on List<List<int>> {
-  List<List<int>> get deepClone {
-    List<List<int>> res = [];
-    for (int i = 0; i < this.length; i++) {
-      res.add([]);
-      for (int j = 0; j < this[i].length; j++) res[i].add(this[i][j]);
-    }
-    return res;
-  }
-
-  List<int> get flat {
-    List<int> res = [];
-    for (int i = 0; i < this.length; i++) {
-      for (int j = 0; j < this[i].length; j++) res.add(this[i][j]);
-    }
-    return res;
-  }
-}
-
-UnmodifiableListView<UnmodifiableListView<int>> unmodifiableFromFlatList(
-    List<int> flat, int width) {
-  List<UnmodifiableListView<int>> res = [];
+IList<IList<int>> fromFlatList(List<int> flat, int width) {
+  List<IList<int>> res = [];
   List<int> temp = [];
   for (int i = 0; i < flat.length; i++) {
     if ((i + 1) % width == 0) {
       temp.add(flat[i]);
-      res.add(UnmodifiableListView(temp.shallowClone));
+      res.add(temp.lock);
       temp.clear();
     } else
       temp.add(flat[i]);
   }
-  return UnmodifiableListView(res);
-}
-
-List<List<int>> fromFlatList(List<int> flat, int width) {
-  List<List<int>> res = [];
-  List<int> temp = [];
-  for (int i = 0; i < flat.length; i++) {
-    if ((i + 1) % width == 0) {
-      temp.add(flat[i]);
-      res.add(temp.shallowClone);
-      temp.clear();
-    } else
-      temp.add(flat[i]);
-  }
-  return res;
+  return res.lock;
 }
 
 abstract class RoomDataLabels {
@@ -90,10 +53,10 @@ class RoomData extends ChangeNotifier {
     required this.blackPlayer,
     required this.whitePlayer,
     DateTime? timestamp,
-    List<List<int>>? currentBoard,
+    IList<IList<int>>? currentBoard,
     int length = 8,
     int height = 8,
-    List<MoveData>? lastMoves,
+    IList<MoveData>? lastMoves,
     Duration blackTotalDuration = const Duration(),
     Duration whiteTotalDuration = const Duration(),
     bool whiteFirstTurn = false,
@@ -105,7 +68,7 @@ class RoomData extends ChangeNotifier {
         this._timestamp = timestamp ?? DateTime.now(),
         this._currentBoard = currentBoard ?? _initializeBoard(length, height),
         this.__playerIdTurn = whiteFirstTurn ? whitePlayer.id : blackPlayer.id,
-        this._lastMoves = lastMoves ?? [],
+        this._lastMoves = lastMoves ?? const IList.empty(),
         this._blackTotalDuration = blackTotalDuration,
         this._whiteTotalDuration = whiteTotalDuration {
     this._playerIdTurn =
@@ -218,9 +181,7 @@ class RoomData extends ChangeNotifier {
     List<int>? flatBoard =
         map[RoomDataLabels.currentBoard]?.cast<int>()?.toList();
 
-    List<List<int>>? currentBoard = fromFlatList(flatBoard ?? [], length);
-
-    if (currentBoard.length == 0) currentBoard = null;
+    IList<IList<int>> parsedBoard = fromFlatList(flatBoard ?? [], length);
 
     final gotTimestamp = map[RoomDataLabels.timestamp];
     if (gotTimestamp is DateTime)
@@ -237,12 +198,11 @@ class RoomData extends ChangeNotifier {
           Map<String, dynamic>.from(map[RoomDataLabels.blackPlayer] ?? {})),
       whitePlayer: whitePlayer,
       timestamp: timestamp,
-      currentBoard: currentBoard,
+      currentBoard: parsedBoard.isEmpty ? null : parsedBoard,
       lastMoves: (map[RoomDataLabels.lastMoves] as List?)
               ?.map((e) =>
                   MoveData.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toList() ??
-          [],
+              .toIList(),
       blackTotalDuration:
           Duration(seconds: map[RoomDataLabels.blackTotalDuration] ?? 0),
       whiteTotalDuration:
@@ -259,8 +219,8 @@ class RoomData extends ChangeNotifier {
   final Player blackPlayer, whitePlayer;
   final int height, length;
   String __playerIdTurn;
-  List<List<int>> _currentBoard;
-  List<MoveData> _lastMoves;
+  IList<IList<int>> _currentBoard;
+  IList<MoveData> _lastMoves;
   Duration _blackTotalDuration, _whiteTotalDuration;
   DateTime _timestamp;
 
@@ -291,17 +251,11 @@ class RoomData extends ChangeNotifier {
   Duration getTotalDuration(bool forWhite) =>
       forWhite ? _whiteTotalDuration : blackTotalDuration;
 
-  UnmodifiableListView<MoveData> get lastMoves =>
-      UnmodifiableListView(_lastMoves);
+  IList<MoveData> get lastMoves => _lastMoves;
 
   DateTime get timestamp => _timestamp;
 
-  UnmodifiableListView<UnmodifiableListView<int>> get currentBoard {
-    final clone = _currentBoard.deepClone;
-    List<UnmodifiableListView<int>> res = [];
-    for (int i = 0; i < height; i++) res.add(UnmodifiableListView(clone[i]));
-    return UnmodifiableListView(res);
-  }
+  IList<IList<int>> get currentBoard => _currentBoard;
 
   Future<List<int>?> get nextTurn => _currentPlayer.nextTurn(this);
 
@@ -320,7 +274,7 @@ class RoomData extends ChangeNotifier {
         RoomDataLabels.whitePlayer: whitePlayer.toJson(),
         RoomDataLabels.playerIdTurn: __playerIdTurn,
         RoomDataLabels.currentBoard: _currentBoard.flat,
-        RoomDataLabels.lastMoves: lastMoves.map((e) => e.toJson()).toList(),
+        RoomDataLabels.lastMoves: _lastMoves.map((e) => e.toJson()).toList(),
         RoomDataLabels.blackTotalDuration: _blackTotalDuration.inSeconds,
         RoomDataLabels.whiteTotalDuration: _whiteTotalDuration.inSeconds,
         RoomDataLabels.timestamp: _timestamp,
@@ -330,16 +284,15 @@ class RoomData extends ChangeNotifier {
     int res = 0;
     for (int i = 0; i < height; i++)
       for (int j = 0; j < length; j++)
-        if (currentBoard[i][j] == _playerMove(forWhite)) res++;
+        if (_currentBoard[i][j] == _playerMove(forWhite)) res++;
 
     return res;
   }
 
-  static List<List<int>> _initializeBoard(int length, int height) {
+  static IList<IList<int>> _initializeBoard(int length, int height) {
     List<List<int>> board = [];
     for (int i = 0; i < height; i++) {
-      board.add([]);
-      for (int j = 0; j < length; j++) board[i].add(-1);
+      board.add(List.filled(length, -1));
     }
 
     int lMidSecond = length ~/ 2, hMidSecond = height ~/ 2;
@@ -348,7 +301,7 @@ class RoomData extends ChangeNotifier {
     board[hMidSecond - 1][lMidSecond] = 1;
     board[hMidSecond][lMidSecond - 1] = 1;
 
-    return board;
+    return board.deepLock;
   }
 
   void changeTurn() {
@@ -373,7 +326,7 @@ class RoomData extends ChangeNotifier {
   }
 
   void reset() {
-    _lastMoves.clear();
+    _lastMoves = const IList.empty();
     _currentBoard = _initializeBoard(length, height);
     _blackTotalDuration = Duration.zero;
     _whiteTotalDuration = Duration.zero;
@@ -381,12 +334,12 @@ class RoomData extends ChangeNotifier {
   }
 
   void undo({bool debug = false}) {
-    if (lastMoves.length < 2) return;
-    _lastMoves.removeLast();
-    _currentBoard = lastMoves.last.board.deepClone;
-    _playerIdTurn = lastMoves.last.playerIdTurn;
-    _subtractDuration(playerId(!isWhiteTurn), lastMoves.last.duration);
-    _timestamp = lastMoves.last.timestamp;
+    if (_lastMoves.length < 2) return;
+    _lastMoves = _lastMoves.removeLast();
+    _currentBoard = _lastMoves.last.board;
+    _playerIdTurn = _lastMoves.last.playerIdTurn;
+    _subtractDuration(playerId(!isWhiteTurn), _lastMoves.last.duration);
+    _timestamp = _lastMoves.last.timestamp;
     if (!isManualTurn) return undo();
     _saveGameOffline();
     lastMovesStats(debug);
@@ -394,7 +347,8 @@ class RoomData extends ChangeNotifier {
 
   List<List<List<int>>?> makeMove(int i, int j, {bool debug = false}) {
     lastMovesStats(debug);
-    _currentBoard[i][j] = currentPlayerMove;
+    _currentBoard = _currentBoard.replace(
+        i, _currentBoard[i].replace(j, currentPlayerMove));
     var piecesToFlip = getPiecesToFlip(i, j, _currentBoard[i][j]);
     if (isWhiteTurn)
       _whiteTotalDuration += DateTime.now().difference(_timestamp);
@@ -418,11 +372,11 @@ class RoomData extends ChangeNotifier {
   void _updateLastMoves({bool debug = false}) {
     if (debug) dev.log('isWhiteTurn: $isWhiteTurn', name: '_updateLastMoves');
     final currentMove = MoveData.create(
-        board: currentBoard,
+        board: _currentBoard,
         duration: DateTime.now().difference(_timestamp),
         playerIdTurn: _playerIdTurn,
         timestamp: _timestamp);
-    _lastMoves.add(currentMove);
+    _lastMoves = _lastMoves.add(currentMove);
     lastMovesStats(debug);
   }
 
@@ -504,7 +458,8 @@ class RoomData extends ChangeNotifier {
       if (levelPieces != null)
         for (var pair in levelPieces) {
           int i = pair.first, j = pair.last;
-          _currentBoard[i][j] = 1 - _currentBoard[i][j];
+          _currentBoard = _currentBoard.replace(
+              i, _currentBoard[i].replace(j, 1 - _currentBoard[i][j]));
         }
   }
 }

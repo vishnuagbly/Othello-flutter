@@ -1,4 +1,6 @@
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:othello/extensions/nested_list.dart';
 import 'package:othello/utils/globals.dart';
 
 part 'move_data.freezed.dart';
@@ -17,16 +19,16 @@ class DurationSecondsConverter implements JsonConverter<Duration, int> {
   int toJson(Duration object) => object.inSeconds;
 }
 
-class UnmodifiableBoardConverter
-    implements JsonConverter<List<List<int>>, List<dynamic>> {
-  const UnmodifiableBoardConverter();
+class IListBoardConverter
+    implements JsonConverter<IList<IList<int>>, List<dynamic>> {
+  const IListBoardConverter();
 
   @override
-  List<List<int>> fromJson(List<dynamic> json) =>
-      [for (final row in json) List<int>.unmodifiable((row as List).cast<int>())];
+  IList<IList<int>> fromJson(List<dynamic> json) =>
+      [for (final row in json) (row as List).cast<int>()].deepLock;
 
   @override
-  List<dynamic> toJson(List<List<int>> object) => object;
+  List<dynamic> toJson(IList<IList<int>> object) => object.deepUnlock;
 }
 
 @freezed
@@ -34,7 +36,7 @@ sealed class MoveData with _$MoveData {
   const MoveData._();
 
   const factory MoveData({
-    @UnmodifiableBoardConverter() required List<List<int>> board,
+    @IListBoardConverter() required IList<IList<int>> board,
     @JsonKey(readValue: _readMoveDataId) required String id,
     @DurationSecondsConverter() required Duration duration,
     required DateTime timestamp,
@@ -42,13 +44,13 @@ sealed class MoveData with _$MoveData {
   }) = _MoveData;
 
   factory MoveData.create({
-    required List<List<int>> board,
+    required IList<IList<int>> board,
     required Duration duration,
     required String playerIdTurn,
     required DateTime timestamp,
   }) =>
       MoveData(
-        board: [for (final row in board) List<int>.unmodifiable(row)],
+        board: board,
         id: Globals.uuid.v1(),
         duration: duration,
         playerIdTurn: playerIdTurn,
@@ -59,7 +61,7 @@ sealed class MoveData with _$MoveData {
       _$MoveDataFromJson(json);
 }
 
-extension moveDataExtension on List<MoveData> {
+extension MoveDataExtension on Iterable<MoveData> {
   List<String> print() {
     List<String> res = [];
     for (var move in this) res.add(move.id);

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MoveData {
 
-@UnmodifiableBoardConverter() List<List<int>> get board;@JsonKey(readValue: _readMoveDataId) String get id;@DurationSecondsConverter() Duration get duration; DateTime get timestamp; String get playerIdTurn;
+@IListBoardConverter() IList<IList<int>> get board;@JsonKey(readValue: _readMoveDataId) String get id;@DurationSecondsConverter() Duration get duration; DateTime get timestamp; String get playerIdTurn;
 /// Create a copy of MoveData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $MoveDataCopyWith<$Res>  {
   factory $MoveDataCopyWith(MoveData value, $Res Function(MoveData) _then) = _$MoveDataCopyWithImpl;
 @useResult
 $Res call({
-@UnmodifiableBoardConverter() List<List<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn
+@IListBoardConverter() IList<IList<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn
 });
 
 
@@ -68,7 +68,7 @@ class _$MoveDataCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? board = null,Object? id = null,Object? duration = null,Object? timestamp = null,Object? playerIdTurn = null,}) {
   return _then(_self.copyWith(
 board: null == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
-as List<List<int>>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as IList<IList<int>>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,playerIdTurn: null == playerIdTurn ? _self.playerIdTurn : playerIdTurn // ignore: cast_nullable_to_non_nullable
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@UnmodifiableBoardConverter()  List<List<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MoveData() when $default != null:
 return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn);case _:
@@ -175,7 +175,7 @@ return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.player
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@UnmodifiableBoardConverter()  List<List<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)  $default,) {final _that = this;
 switch (_that) {
 case _MoveData():
 return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn);}
@@ -192,7 +192,7 @@ return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.player
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@UnmodifiableBoardConverter()  List<List<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)?  $default,) {final _that = this;
 switch (_that) {
 case _MoveData() when $default != null:
 return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn);case _:
@@ -207,16 +207,10 @@ return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.player
 @JsonSerializable()
 
 class _MoveData extends MoveData {
-  const _MoveData({@UnmodifiableBoardConverter() required final  List<List<int>> board, @JsonKey(readValue: _readMoveDataId) required this.id, @DurationSecondsConverter() required this.duration, required this.timestamp, required this.playerIdTurn}): _board = board,super._();
+  const _MoveData({@IListBoardConverter() required this.board, @JsonKey(readValue: _readMoveDataId) required this.id, @DurationSecondsConverter() required this.duration, required this.timestamp, required this.playerIdTurn}): super._();
   factory _MoveData.fromJson(Map<String, dynamic> json) => _$MoveDataFromJson(json);
 
- final  List<List<int>> _board;
-@override@UnmodifiableBoardConverter() List<List<int>> get board {
-  if (_board is EqualUnmodifiableListView) return _board;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_board);
-}
-
+@override@IListBoardConverter() final  IList<IList<int>> board;
 @override@JsonKey(readValue: _readMoveDataId) final  String id;
 @override@DurationSecondsConverter() final  Duration duration;
 @override final  DateTime timestamp;
@@ -235,12 +229,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MoveData&&const DeepCollectionEquality().equals(other._board, _board)&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.playerIdTurn, playerIdTurn) || other.playerIdTurn == playerIdTurn));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MoveData&&const DeepCollectionEquality().equals(other.board, board)&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.playerIdTurn, playerIdTurn) || other.playerIdTurn == playerIdTurn));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_board),id,duration,timestamp,playerIdTurn);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(board),id,duration,timestamp,playerIdTurn);
 
 @override
 String toString() {
@@ -255,7 +249,7 @@ abstract mixin class _$MoveDataCopyWith<$Res> implements $MoveDataCopyWith<$Res>
   factory _$MoveDataCopyWith(_MoveData value, $Res Function(_MoveData) _then) = __$MoveDataCopyWithImpl;
 @override @useResult
 $Res call({
-@UnmodifiableBoardConverter() List<List<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn
+@IListBoardConverter() IList<IList<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn
 });
 
 
@@ -274,8 +268,8 @@ class __$MoveDataCopyWithImpl<$Res>
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? board = null,Object? id = null,Object? duration = null,Object? timestamp = null,Object? playerIdTurn = null,}) {
   return _then(_MoveData(
-board: null == board ? _self._board : board // ignore: cast_nullable_to_non_nullable
-as List<List<int>>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+board: null == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
+as IList<IList<int>>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,playerIdTurn: null == playerIdTurn ? _self.playerIdTurn : playerIdTurn // ignore: cast_nullable_to_non_nullable

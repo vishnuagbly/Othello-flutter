@@ -7,7 +7,7 @@ part of 'move_data.dart';
 // **************************************************************************
 
 _MoveData _$MoveDataFromJson(Map<String, dynamic> json) => _MoveData(
-  board: const UnmodifiableBoardConverter().fromJson(json['board'] as List),
+  board: const IListBoardConverter().fromJson(json['board'] as List),
   id: _readMoveDataId(json, 'id') as String,
   duration: const DurationSecondsConverter().fromJson(
     (json['duration'] as num).toInt(),
@@ -17,7 +17,7 @@ _MoveData _$MoveDataFromJson(Map<String, dynamic> json) => _MoveData(
 );
 
 Map<String, dynamic> _$MoveDataToJson(_MoveData instance) => <String, dynamic>{
-  'board': const UnmodifiableBoardConverter().toJson(instance.board),
+  'board': const IListBoardConverter().toJson(instance.board),
   'id': instance.id,
   'duration': const DurationSecondsConverter().toJson(instance.duration),
   'timestamp': instance.timestamp.toIso8601String(),
