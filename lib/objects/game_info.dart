@@ -55,7 +55,6 @@ class GameInfo {
   }
 
   void undo({bool debug = false}) {
-    if (_roomData.isOnline) return;
     if (debug) print("performing undo");
     _roomData.undo(debug: debug);
     if (!_flipping) _syncEachPiece(false, debug);

@@ -10,7 +10,6 @@ import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info.dart';
 import 'package:othello/objects/room_data.dart';
-import 'package:othello/screens/chat_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -157,15 +156,6 @@ class _GameRoomState extends State<GameRoom>
             onPressed: resetGame,
             child: Icon(Icons.replay),
           ),
-          SizedBox(width: 10),
-          if (_gameInfo.roomData.isOnline)
-            FloatingActionButton(
-              onPressed: () {
-                context.push(ChatScreen.routeName, extra: widget.roomData);
-              },
-              heroTag: "open_chat_screen",
-              child: Icon(Icons.chat),
-            ),
         ],
       ),
     );

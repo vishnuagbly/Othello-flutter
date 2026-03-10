@@ -2,11 +2,8 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:developer' as dev;
 
-import 'package:othello/objects/profile.dart';
 import 'package:othello/utils/globals.dart';
-import 'package:othello/utils/networks.dart';
 
-import 'chat_message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive_ce.dart';
@@ -84,7 +81,6 @@ abstract class RoomDataLabels {
       lastMoves = 'lastMoves',
       blackTotalDuration = 'blackTotalDuration',
       whiteTotalDuration = 'whiteTotalDuration',
-      chats = 'chats',
       timestamp = 'timestamp';
 }
 
@@ -99,7 +95,6 @@ class RoomData extends ChangeNotifier with Savable {
     int length = 8,
     int height = 8,
     List<MoveData>? lastMoves,
-    List<ChatMessage>? chats,
     Duration blackTotalDuration = const Duration(),
     Duration whiteTotalDuration = const Duration(),
     bool whiteFirstTurn = false,
@@ -112,7 +107,6 @@ class RoomData extends ChangeNotifier with Savable {
         this._currentBoard = currentBoard ?? _initializeBoard(length, height),
         this.__playerIdTurn = whiteFirstTurn ? whitePlayer.id : blackPlayer.id,
         this._lastMoves = lastMoves ?? [],
-        this._chats = chats ?? [],
         this._blackTotalDuration = blackTotalDuration,
         this._whiteTotalDuration = whiteTotalDuration {
     this._playerIdTurn =
@@ -244,8 +238,6 @@ class RoomData extends ChangeNotifier with Savable {
           map[RoomDataLabels.lastMoves]?.cast<Map>()?.toList() ?? [],
           length,
           height),
-      chats: ChatMessage.fromMaps(
-          map[RoomDataLabels.chats]?.cast<Map>()?.toList() ?? []),
       blackTotalDuration:
           Duration(seconds: map[RoomDataLabels.blackTotalDuration] ?? 0),
       whiteTotalDuration:
@@ -265,7 +257,6 @@ class RoomData extends ChangeNotifier with Savable {
   List<List<int>> _currentBoard;
   List<MoveData> _lastMoves;
   Duration _blackTotalDuration, _whiteTotalDuration;
-  List<ChatMessage> _chats;
   DateTime _timestamp;
 
   int get currentPlayerMove => _playerMove(isWhiteTurn);
@@ -277,10 +268,7 @@ class RoomData extends ChangeNotifier with Savable {
 
   bool get isWhiteTurn => _playerIdTurn == whitePlayer.id;
 
-  bool get isManualTurn =>
-      _currentPlayer.nextMoveFnId == null ||
-      (_currentPlayer.nextMoveFnId == NextMoveFns.onlineId &&
-          _playerIdTurn == Profile.global?.id);
+  bool get isManualTurn => _currentPlayer.nextMoveFnId == null;
 
   Player get _currentPlayer => isWhiteTurn ? whitePlayer : blackPlayer;
 
@@ -298,17 +286,10 @@ class RoomData extends ChangeNotifier with Savable {
   Duration getTotalDuration(bool forWhite) =>
       forWhite ? _whiteTotalDuration : blackTotalDuration;
 
-  UnmodifiableListView<ChatMessage> get chats => UnmodifiableListView(_chats);
-
   UnmodifiableListView<MoveData> get lastMoves =>
       UnmodifiableListView(_lastMoves);
 
   DateTime get timestamp => _timestamp;
-
-  bool get isOnline {
-    return whitePlayer.nextMoveFnId == NextMoveFns.onlineId ||
-        blackPlayer.nextMoveFnId == NextMoveFns.onlineId;
-  }
 
   UnmodifiableListView<UnmodifiableListView<int>> get currentBoard {
     final clone = _currentBoard.deepClone;
@@ -337,7 +318,6 @@ class RoomData extends ChangeNotifier with Savable {
         RoomDataLabels.lastMoves: lastMoves.toMaps(),
         RoomDataLabels.blackTotalDuration: _blackTotalDuration.inSeconds,
         RoomDataLabels.whiteTotalDuration: _whiteTotalDuration.inSeconds,
-        RoomDataLabels.chats: _chats.toMaps(),
         RoomDataLabels.timestamp: _timestamp,
       };
 
@@ -388,7 +368,6 @@ class RoomData extends ChangeNotifier with Savable {
   }
 
   void reset() {
-    if (isOnline) return;
     _lastMoves.clear();
     _currentBoard = _initializeBoard(length, height);
     _blackTotalDuration = Duration.zero;
@@ -405,7 +384,6 @@ class RoomData extends ChangeNotifier with Savable {
     _timestamp = lastMoves.last.timestamp;
     if (!isManualTurn) return undo();
     _saveGameOffline();
-    _updateGameOnlineIfRequired();
     lastMovesStats(debug);
   }
 
@@ -422,22 +400,14 @@ class RoomData extends ChangeNotifier with Savable {
     changeTurn();
     _updateLastMoves();
     _saveGameOffline();
-    _updateGameOnlineIfRequired();
     return piecesToFlip;
   }
 
   void _saveGameOffline() async {
-    if (isOnline) return;
     if (hiveKey == null) return;
     var box = Hive.box(hiveBoxName);
     await box.put(hiveKey, toMap());
     print("successfully saved");
-  }
-
-  void _updateGameOnlineIfRequired() async {
-    if (!isOnline) return;
-
-    await Networks.updateRoom(this);
   }
 
   void _updateLastMoves({bool debug = false}) {
