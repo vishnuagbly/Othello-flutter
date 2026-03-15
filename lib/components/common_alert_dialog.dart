@@ -59,7 +59,7 @@ class CommonAlertDialog extends AlertDialog {
                 fontSize: screenWidth * 0.04,
               ),
             ),
-            onPressed: onPressed as void Function()? ??
+            onPressed: onPressed ??
                 () {
                   Navigator.of(context).pop();
                 },

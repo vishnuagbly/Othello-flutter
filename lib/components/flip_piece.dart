@@ -52,7 +52,7 @@ class FlipPieceState extends State<FlipPiece> {
   Widget _flipAnimation() {
     final _onFinishPlaying = (ImageSequenceAnimatorState state) {
       if (_pieceState.value % 2 == 0) return;
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         _flipStateFn();
         _pieceState.stateFn();
       });

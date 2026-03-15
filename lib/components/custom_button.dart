@@ -87,7 +87,7 @@ class _CustomButtonState extends State<CustomButton> {
                         waitUntilCacheIsComplete: true,
                         onFinishPlaying: (state) {
                           if (!_executedOnPressedFn) {
-                            WidgetsBinding.instance!.addPostFrameCallback((_) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
                               setState(() {
                                 _flipping = false;
                               });
