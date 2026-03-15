@@ -9,8 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:othello/components/common_alert_dialog.dart';
 import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
-import 'package:othello/objects/game_info/game_info.dart';
 import 'package:othello/objects/room_data/room_data.dart';
+import 'package:othello/providers/room_data/room_data.dart' hide RoomData;
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/widgets/room_data_scope.dart';
 
@@ -75,16 +75,14 @@ class GameRoom extends ConsumerStatefulWidget {
 
 class _GameRoomState extends ConsumerState<GameRoom>
     with SingleTickerProviderStateMixin {
-  late GameInfo _gameInfo;
   late List<Widget> mainStack;
-  bool _gameInfoCreated = false;
+  bool _gameStateInitialized = false;
 
-  void _createGameInfo() {
-    if (_gameInfoCreated) return;
-    _gameInfoCreated = true;
-    _gameInfo = GameInfo(
-      roomDataId: widget.roomDataId,
-      ref: ref,
+  void _createGameState() {
+    if (_gameStateInitialized) return;
+    _gameStateInitialized = true;
+    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
+    notifier.initGameState(
       onEndGame: _showEndGameDialog,
       autoReset: widget.onlyBoard,
     );
@@ -102,19 +100,19 @@ class _GameRoomState extends ConsumerState<GameRoom>
   }
 
   void _initStack() {
-    final info = _gameInfo;
+    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
     mainStack = [
       Column(
         children: List.generate(
-          info.boardHeight,
+          notifier.boardHeight,
           (i) => Row(
             children: List.generate(
-              info.boardLength,
+              notifier.boardLength,
               (j) => Piece(
-                info.cellWidth,
-                initValue: info.board[i][j],
-                onCreation: (state) => info.pieceStates[i][j] = state,
-                onTap: info.onTapOnPiece(i, j),
+                notifier.cellWidth,
+                initValue: notifier.board[i][j],
+                onCreation: (state) => notifier.pieceStates[i][j] = state,
+                onTap: notifier.onTapOnPiece(i, j),
                 isWhiteTurn: () =>
                     ref.read(roomDataProvider(widget.roomDataId)).isWhiteTurn,
               ),
@@ -124,44 +122,43 @@ class _GameRoomState extends ConsumerState<GameRoom>
       ),
     ];
 
-    for (int i = 0; i < info.boardHeight; i++) {
-      for (int j = 0; j < info.boardLength; j++) {
+    for (int i = 0; i < notifier.boardHeight; i++) {
+      for (int j = 0; j < notifier.boardLength; j++) {
         mainStack.add(
           FlipPiece(
-            info.cellWidth,
+            notifier.cellWidth,
             i,
             j,
-            onCreation: (state) => info.flipPieceStates[i][j] = state,
-            getPieceStateFn: () => info.pieceStates[i][j]!,
+            onCreation: (state) => notifier.flipPieceStates[i][j] = state,
+            getPieceStateFn: () => notifier.pieceStates[i][j]!,
           ),
         );
       }
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await info.makeNextTurn(false);
+      await notifier.makeNextTurn(false);
     });
   }
 
   Future<void> _resetGame() async {
-    final current = ref.read(roomDataProvider(widget.roomDataId));
-    await ref.read(roomDataDbProvider.notifier).deleteRoom(current.id);
-    final newRoom = RoomData.freshFrom(current);
-    await ref.read(roomDataDbProvider.notifier).createRoom(newRoom);
-    if (mounted) context.go('/game_room/${newRoom.id}');
+    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
+    final newId = await notifier.resetGame();
+    if (mounted) context.go('/game_room/$newId');
   }
 
   @override
   Widget build(BuildContext context) {
     ref.watch(roomDataProvider(widget.roomDataId));
-    _createGameInfo();
+    _createGameState();
 
+    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
     final board = Container(
       color: Colors.grey[850],
       padding: const EdgeInsets.all(10),
       child: Container(
-        width: _gameInfo.cellWidth * _gameInfo.boardLength,
-        height: _gameInfo.cellWidth * _gameInfo.boardHeight,
+        width: notifier.cellWidth * notifier.boardLength,
+        height: notifier.cellWidth * notifier.boardHeight,
         color: Colors.green[600],
         child: Stack(
           children: mainStack,
@@ -200,7 +197,7 @@ class _GameRoomState extends ConsumerState<GameRoom>
                   FloatingActionButton(
                     heroTag: "undo_button",
                     child: Icon(Icons.undo),
-                    onPressed: _gameInfo.undo,
+                    onPressed: notifier.undo,
                   ),
                   SizedBox(width: 10),
                   FloatingActionButton(

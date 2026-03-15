@@ -105,14 +105,6 @@ bool roomExists(Ref ref, String id) {
   return ref.watch(roomDataDbProvider).containsKey(id);
 }
 
-@riverpod
-RoomData roomData(Ref ref, String id) {
-  final ds = ref.watch(roomDataDbProvider);
-  final room = ds[id];
-  if (room == null) throw StateError('RoomData not found for id: $id');
-  return room;
-}
-
 /// Pure computation: apply move and return (new RoomData, piecesToFlip).
 (RoomData, List<List<List<int>>?>)? _applyMove(RoomData room, int i, int j) {
   final piecesToFlip = room.getPiecesToFlip(i, j, room.currentPlayerMove);

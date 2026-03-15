@@ -3,51 +3,65 @@ import 'dart:developer';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
-import 'package:othello/objects/room_data/room_data.dart';
+import 'package:othello/objects/room_data/room_data.dart' as models;
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/utils/globals.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class GameInfo {
-  GameInfo({
-    required this.roomDataId,
-    required this.ref,
-    required this.onEndGame,
-    this.autoReset = false,
-  }) {
-    _initValues(_roomData);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _markPossibleMoves());
-  }
+part 'room_data.g.dart';
 
-  final String roomDataId;
-  final WidgetRef ref;
-  final void Function(int status) onEndGame;
-  final bool autoReset;
-
+@Riverpod(keepAlive: true)
+class RoomData extends _$RoomData {
+  // TODO: Ideally will split this provider into a GameState Object and
+  // GameStateProvider later. For that, will also have to update the rest of the
+  // implementation of PieceState and FlipPieceState — instead of having state
+  // objects stored, we will store the actual state values, and do operations on
+  // the state with listeners. But that is for the future.
   late double _boardWidth;
   late double cellWidth;
   List<List<FlipPieceState?>> flipPieceStates = [];
   List<List<PieceState?>> pieceStates = [];
   bool _flipping = false;
+  void Function(int status)? onEndGame;
+  bool autoReset = false;
 
-  RoomData get _roomData => ref.read(roomDataProvider(roomDataId));
+  @override
+  models.RoomData build(String id) {
+    final ds = ref.watch(roomDataDbProvider);
+    final room = ds[id];
+    if (room == null) throw StateError('RoomData not found for id: $id');
+    return room;
+  }
+
+  models.RoomData get _roomData => state;
 
   int get boardHeight => _roomData.height;
 
   int get boardLength => _roomData.length;
 
-  RoomData get roomData => _roomData;
-
   IList<IList<int>> get board => _roomData.currentBoard;
 
-  void _initValues(RoomData room) {
+  /// Call once from the widget after the provider is created to set callbacks
+  /// and initialize layout/UI state.
+  void initGameState({
+    required void Function(int status) onEndGame,
+    bool autoReset = false,
+  }) {
+    this.onEndGame = onEndGame;
+    this.autoReset = autoReset;
+    _initValues(_roomData);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _markPossibleMoves());
+  }
+
+  void _initValues(models.RoomData room) {
     final margin = 50;
     if (Globals.screenWidth < Globals.screenHeight) {
       _boardWidth = Globals.screenWidth - margin;
-      final _hasEnoughHeight = Globals.screenHeight > Globals.screenWidth * 1.5;
-      if (!_hasEnoughHeight) _boardWidth -= Globals.screenWidth * 0.2;
+      final hasEnoughHeight =
+          Globals.screenHeight > Globals.screenWidth * 1.5;
+      if (!hasEnoughHeight) _boardWidth -= Globals.screenWidth * 0.2;
     } else {
       const appBarHeight = 100;
       _boardWidth = Globals.screenHeight - margin - 100;
@@ -65,8 +79,8 @@ class GameInfo {
 
   void undo({bool debug = false}) async {
     if (debug) print("performing undo");
-    final notifier = ref.read(roomDataDbProvider.notifier);
-    final didUndo = await notifier.undo(roomDataId);
+    final dbNotifier = ref.read(roomDataDbProvider.notifier);
+    final didUndo = await dbNotifier.undo(id);
     if (!didUndo) return;
     if (!_flipping) _syncEachPiece(false, debug);
 
@@ -82,8 +96,8 @@ class GameInfo {
         final room = _roomData;
         if (!moveFromBot && !room.isManualTurn) return;
         if (state.mounted) state.set(room.currentPlayerMove);
-        final notifier = ref.read(roomDataDbProvider.notifier);
-        final piecesToFlip = await notifier.makeMove(roomDataId, i, j);
+        final dbNotifier = ref.read(roomDataDbProvider.notifier);
+        final piecesToFlip = await dbNotifier.makeMove(id, i, j);
         if (piecesToFlip != null) await _startFlipAnimation(piecesToFlip, debug);
       };
 
@@ -98,14 +112,14 @@ class GameInfo {
   void _endGame() async {
     final room = _roomData;
     if (autoReset) {
-      await ref.read(roomDataDbProvider.notifier).resetBoard(roomDataId);
+      await ref.read(roomDataDbProvider.notifier).resetBoard(id);
       await Future.delayed(const Duration(seconds: 2));
       _markPossibleMovesOrEndGame();
       _syncEachPiece(false, false);
       return;
     }
     final status = room.getStatus();
-    onEndGame(status);
+    onEndGame?.call(status);
   }
 
   bool _markPossibleMoves() {
@@ -148,14 +162,13 @@ class GameInfo {
   }
 
   void _syncEachPiece(bool gameEnded, bool debug) {
-    final room = _roomData;
-    for (int i = 0; i < room.height; i++) {
-      for (int j = 0; j < room.length; j++) {
+    for (int i = 0; i < _roomData.height; i++) {
+      for (int j = 0; j < _roomData.length; j++) {
         pieceStates[i][j]?.set(board[i][j]);
       }
     }
-    for (int i = 0; i < room.height; i++) {
-      for (int j = 0; j < room.length; j++) {
+    for (int i = 0; i < _roomData.height; i++) {
+      for (int j = 0; j < _roomData.length; j++) {
         flipPieceStates[i][j]?.set();
       }
     }
@@ -177,5 +190,14 @@ class GameInfo {
           pieceStates[nextMove[0]][nextMove[1]]!);
       }
     }
+  }
+
+  /// Deletes current room, creates a fresh one from it, returns the new room id.
+  /// Caller is responsible for navigation.
+  Future<String> resetGame() async {
+    final current = state;
+    await ref.read(roomDataDbProvider.notifier).deleteRoom(current.id);
+    final newRoom = models.RoomData.freshFrom(current);
+    return ref.read(roomDataDbProvider.notifier).createRoom(newRoom);
   }
 }
