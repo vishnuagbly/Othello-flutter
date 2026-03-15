@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:othello/providers/room_data/room_data.dart';
+import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/utils/globals.dart';
 
 class GameInfo {
@@ -65,7 +65,7 @@ class GameInfo {
 
   void undo({bool debug = false}) async {
     if (debug) print("performing undo");
-    final notifier = ref.read(roomDatasProvider.notifier);
+    final notifier = ref.read(roomDataDbProvider.notifier);
     final didUndo = await notifier.undo(roomDataId);
     if (!didUndo) return;
     if (!_flipping) _syncEachPiece(false, debug);
@@ -82,7 +82,7 @@ class GameInfo {
         final room = _roomData;
         if (!moveFromBot && !room.isManualTurn) return;
         if (state.mounted) state.set(room.currentPlayerMove);
-        final notifier = ref.read(roomDatasProvider.notifier);
+        final notifier = ref.read(roomDataDbProvider.notifier);
         final piecesToFlip = await notifier.makeMove(roomDataId, i, j);
         if (piecesToFlip != null) await _startFlipAnimation(piecesToFlip, debug);
       };
@@ -98,7 +98,7 @@ class GameInfo {
   void _endGame() async {
     final room = _roomData;
     if (autoReset) {
-      await ref.read(roomDatasProvider.notifier).resetBoard(roomDataId);
+      await ref.read(roomDataDbProvider.notifier).resetBoard(roomDataId);
       await Future.delayed(const Duration(seconds: 2));
       _markPossibleMovesOrEndGame();
       _syncEachPiece(false, false);

@@ -11,7 +11,7 @@ import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info/game_info.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:othello/providers/room_data/room_data.dart';
+import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/widgets/room_data_scope.dart';
 
 /// Gate: waits for init, checks room exists; shows loading/invalid or builds [GameRoom].
@@ -30,7 +30,7 @@ class _GameRoomGateState extends ConsumerState<GameRoomGate> {
   @override
   void initState() {
     super.initState();
-    ref.read(roomDatasProvider.notifier).waitForInitialization.then((_) {
+    ref.read(roomDataDbProvider.notifier).waitForInitialization.then((_) {
       if (mounted) setState(() => _initialized = true);
     });
   }
@@ -145,9 +145,9 @@ class _GameRoomState extends ConsumerState<GameRoom>
 
   Future<void> _resetGame() async {
     final current = ref.read(roomDataProvider(widget.roomDataId));
-    await ref.read(roomDatasProvider.notifier).deleteRoom(current.id);
+    await ref.read(roomDataDbProvider.notifier).deleteRoom(current.id);
     final newRoom = RoomData.freshFrom(current);
-    await ref.read(roomDatasProvider.notifier).createRoom(newRoom);
+    await ref.read(roomDataDbProvider.notifier).createRoom(newRoom);
     if (mounted) context.go('/game_room/${newRoom.id}');
   }
 

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'room_data.dart';
+part of 'room_data_db.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,28 +9,28 @@ part of 'room_data.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(RoomDatas)
-final roomDatasProvider = RoomDatasProvider._();
+@ProviderFor(RoomDataDb)
+final roomDataDbProvider = RoomDataDbProvider._();
 
-final class RoomDatasProvider
-    extends $NotifierProvider<RoomDatas, Dataset<RoomData>> {
-  RoomDatasProvider._()
+final class RoomDataDbProvider
+    extends $NotifierProvider<RoomDataDb, Dataset<RoomData>> {
+  RoomDataDbProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'roomDatasProvider',
+        name: r'roomDataDbProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$roomDatasHash();
+  String debugGetCreateSourceHash() => _$roomDataDbHash();
 
   @$internal
   @override
-  RoomDatas create() => RoomDatas();
+  RoomDataDb create() => RoomDataDb();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(Dataset<RoomData> value) {
@@ -41,9 +41,9 @@ final class RoomDatasProvider
   }
 }
 
-String _$roomDatasHash() => r'a21b9c234e724e66513135c7163cc04c77f81d75';
+String _$roomDataDbHash() => r'f402db0b74d75385895769a3e266be257e5d7209';
 
-abstract class _$RoomDatas extends $Notifier<Dataset<RoomData>> {
+abstract class _$RoomDataDb extends $Notifier<Dataset<RoomData>> {
   Dataset<RoomData> build();
   @$mustCallSuper
   @override
@@ -118,7 +118,7 @@ final class RoomsByTypeProvider
   }
 }
 
-String _$roomsByTypeHash() => r'91191dec0da5d1d033da4b7b5f517020744a18b5';
+String _$roomsByTypeHash() => r'87a81fc02beca3a0d1e45000b9acd6df2edbbae3';
 
 final class RoomsByTypeFamily extends $Family
     with $FunctionalFamilyOverride<List<RoomData>, RoomType> {
@@ -194,7 +194,7 @@ final class RoomExistsProvider extends $FunctionalProvider<bool, bool, bool>
   }
 }
 
-String _$roomExistsHash() => r'4503e8664a007160a6534acedfb8b2fce4698013';
+String _$roomExistsHash() => r'f8b6cfb94c3a7bf7498a253799dc7eaff0579c29';
 
 final class RoomExistsFamily extends $Family
     with $FunctionalFamilyOverride<bool, String> {
@@ -271,7 +271,7 @@ final class RoomDataProvider
   }
 }
 
-String _$roomDataHash() => r'481b393cb925e23c97555883062ba0a45edb42f6';
+String _$roomDataHash() => r'b77713877c55855f54bf317967456f0dd273554a';
 
 final class RoomDataFamily extends $Family
     with $FunctionalFamilyOverride<RoomData, String> {

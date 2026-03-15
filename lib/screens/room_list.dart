@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:othello/providers/room_data/room_data.dart';
+import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/utils/globals.dart';
 
 class RoomListScreen extends ConsumerWidget {
@@ -83,7 +83,7 @@ class RoomListScreen extends ConsumerWidget {
               trailing: IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.white54),
                 onPressed: () {
-                  ref.read(roomDatasProvider.notifier).deleteRoom(room.id);
+                  ref.read(roomDataDbProvider.notifier).deleteRoom(room.id);
                 },
               ),
               onTap: () => context.go('/game_room/${room.id}'),
@@ -93,7 +93,7 @@ class RoomListScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final notifier = ref.read(roomDatasProvider.notifier);
+          final notifier = ref.read(roomDataDbProvider.notifier);
           final room = _newRoomForType(roomType);
           final id = await notifier.createRoom(room);
           if (context.mounted) context.go('/game_room/$id');

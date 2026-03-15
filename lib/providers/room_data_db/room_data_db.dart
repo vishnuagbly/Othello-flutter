@@ -4,10 +4,10 @@ import 'package:othello/objects/room_data/room_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synckit/synckit.dart';
 
-part 'room_data.g.dart';
+part 'room_data_db.g.dart';
 
 @Riverpod(keepAlive: true)
-class RoomDatas extends _$RoomDatas with SyncedState<RoomData> {
+class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
   @override
   Dataset<RoomData> build() {
     return initialize(
@@ -96,18 +96,18 @@ class RoomDatas extends _$RoomDatas with SyncedState<RoomData> {
 
 @riverpod
 List<RoomData> roomsByType(Ref ref, RoomType type) {
-  final ds = ref.watch(roomDatasProvider);
+  final ds = ref.watch(roomDataDbProvider);
   return ds.values.where((r) => r.roomType == type).toList();
 }
 
 @riverpod
 bool roomExists(Ref ref, String id) {
-  return ref.watch(roomDatasProvider).containsKey(id);
+  return ref.watch(roomDataDbProvider).containsKey(id);
 }
 
 @riverpod
 RoomData roomData(Ref ref, String id) {
-  final ds = ref.watch(roomDatasProvider);
+  final ds = ref.watch(roomDataDbProvider);
   final room = ds[id];
   if (room == null) throw StateError('RoomData not found for id: $id');
   return room;

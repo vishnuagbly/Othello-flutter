@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/components/custom_button.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:othello/providers/room_data/room_data.dart';
+import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/screens/game_room.dart';
 import 'package:othello/utils/globals.dart';
 
@@ -72,14 +72,14 @@ class MainMenu extends ConsumerWidget {
   }
 
   Future<void> _onPlayPressed(BuildContext context, WidgetRef ref, RoomType type) async {
-    await ref.read(roomDatasProvider.notifier).waitForInitialization;
+    await ref.read(roomDataDbProvider.notifier).waitForInitialization;
     final rooms = ref.read(roomsByTypeProvider(type));
 
     if (rooms.isEmpty) {
       final room = type == RoomType.offlinePvP
           ? RoomData.offlinePvP()
           : RoomData.offlinePvC();
-      final id = await ref.read(roomDatasProvider.notifier).createRoom(room);
+      final id = await ref.read(roomDataDbProvider.notifier).createRoom(room);
       if (context.mounted) context.go('/game_room/$id');
       return;
     }
@@ -110,9 +110,9 @@ class _PreviewCvCState extends ConsumerState<_PreviewCvC> {
   }
 
   Future<void> _ensurePreviewRoom() async {
-    await ref.read(roomDatasProvider.notifier).waitForInitialization;
+    await ref.read(roomDataDbProvider.notifier).waitForInitialization;
     final room = RoomData.offlineCvC();
-    final id = await ref.read(roomDatasProvider.notifier).createRoom(room);
+    final id = await ref.read(roomDataDbProvider.notifier).createRoom(room);
     if (mounted) setState(() => _previewRoomId = id);
   }
 
