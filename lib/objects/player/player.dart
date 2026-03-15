@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:othello/utils/globals.dart';
+import 'package:othello/objects/room_data/next_move_fns.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 
 part 'player.freezed.dart';

@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
+import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/main_menu.dart';
+import 'package:othello/screens/room_list.dart';
 
 final goRouter = GoRouter(
   routes: [
@@ -9,18 +11,18 @@ final goRouter = GoRouter(
       builder: (context, state) => MainMenu(),
     ),
     GoRoute(
-      path: GameRoom.offlinePvCRouteName,
-      builder: (context, state) => GameRoom.offlinePvC(),
-    ),
-    GoRoute(
-      path: GameRoom.offlinePvPRouteName,
-      builder: (context, state) => GameRoom.offlinePvP(),
-    ),
-    GoRoute(
-      path: '${GameRoom.fromKeyRouteName}/:key',
+      path: '/game_room/:id',
       builder: (context, state) {
-        final key = state.pathParameters['key']!;
-        return GameRoom.fromKey(key);
+        final id = state.pathParameters['id']!;
+        return GameRoomGate(roomDataId: id);
+      },
+    ),
+    GoRoute(
+      path: '/rooms/:type',
+      builder: (context, state) {
+        final typeStr = state.pathParameters['type']!;
+        final type = RoomType.values.byName(typeStr);
+        return RoomListScreen(roomType: type);
       },
     ),
   ],

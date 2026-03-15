@@ -1,105 +1,161 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:othello/components/common_alert_dialog.dart';
 import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/game_info/game_info.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:othello/providers/room_data/room_data.dart';
+import 'package:othello/widgets/room_data_scope.dart';
 
-class GameRoom extends StatefulWidget {
-  static const offlinePvCRouteName = '/game_room/offline_pvc';
-  static const offlinePvPRouteName = '/game_room/offline_pvp';
-  static const fromKeyRouteName = '/game_room/from_key';
+/// Gate: waits for init, checks room exists; shows loading/invalid or builds [GameRoom].
+class GameRoomGate extends ConsumerStatefulWidget {
+  const GameRoomGate({super.key, required this.roomDataId});
 
-  GameRoom(this.roomData, {this.onlyBoard = false});
-
-  GameRoom.offlineCvC({int length = 8, int height = 8})
-      : this.roomData = RoomData.offlineCvC(length: length, height: height),
-        this.onlyBoard = true;
-
-  GameRoom.offlinePvP({
-    bool resetGame = false,
-    this.onlyBoard = false,
-  }) : this.roomData = RoomData.offlinePvP(resetGame: resetGame);
-
-  GameRoom.offlinePvC({
-    bool resetGame = false,
-    this.onlyBoard = false,
-  }) : this.roomData = RoomData.offlinePvC(resetGame: resetGame);
-
-  GameRoom.fromKey(
-    String key, {
-    this.onlyBoard = false,
-  }) : this.roomData = RoomData.fromKey(key, resetGame: true);
-
-  final RoomData roomData;
-  final bool onlyBoard;
+  final String roomDataId;
 
   @override
-  _GameRoomState createState() => _GameRoomState();
+  ConsumerState<GameRoomGate> createState() => _GameRoomGateState();
 }
 
-class _GameRoomState extends State<GameRoom>
-    with SingleTickerProviderStateMixin {
-  late GameInfo _gameInfo;
-  late List<Widget> mainStack;
+class _GameRoomGateState extends ConsumerState<GameRoomGate> {
+  bool _initialized = false;
 
   @override
   void initState() {
-    _gameInfo = GameInfo(widget.roomData, context, autoReset: widget.onlyBoard);
-    _initStack();
     super.initState();
-  }
-
-  void _initStack() {
-    mainStack = [
-      Column(
-        children: List.generate(
-            _gameInfo.boardHeight,
-            (i) => Row(
-                  children: List.generate(
-                      _gameInfo.boardLength,
-                      (j) => Piece(
-                            _gameInfo.cellWidth,
-                            initValue: _gameInfo.board[i][j],
-                            onCreation: (state) =>
-                                _gameInfo.pieceStates[i][j] = state,
-                            onTap: _gameInfo.onTapOnPiece(i, j),
-                          )),
-                )),
-      ),
-    ];
-
-    for (int i = 0; i < _gameInfo.boardHeight; i++)
-      for (int j = 0; j < _gameInfo.boardLength; j++)
-        mainStack.add(
-          FlipPiece(
-            _gameInfo.cellWidth,
-            i,
-            j,
-            onCreation: (state) => _gameInfo.flipPieceStates[i][j] = state,
-            getPieceStateFn: () => _gameInfo.pieceStates[i][j]!,
-          ),
-        );
-
-    WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      await _gameInfo.makeNextTurn(false);
+    ref.read(roomDatasProvider.notifier).waitForInitialization.then((_) {
+      if (mounted) setState(() => _initialized = true);
     });
-  }
-
-  void resetGame() {
-    context.go('${GameRoom.fromKeyRouteName}/${_gameInfo.roomData.hiveKey}');
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final exists = ref.watch(roomExistsProvider(widget.roomDataId));
+    if (!exists) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Text(
+            'Invalid room',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+        ),
+      );
+    }
+    return GameRoom(roomDataId: widget.roomDataId);
+  }
+}
+
+class GameRoom extends ConsumerStatefulWidget {
+  const GameRoom({
+    super.key,
+    required this.roomDataId,
+    this.onlyBoard = false,
+  });
+
+  final String roomDataId;
+  final bool onlyBoard;
+
+  @override
+  ConsumerState<GameRoom> createState() => _GameRoomState();
+}
+
+class _GameRoomState extends ConsumerState<GameRoom>
+    with SingleTickerProviderStateMixin {
+  late GameInfo _gameInfo;
+  late List<Widget> mainStack;
+  bool _gameInfoCreated = false;
+
+  void _createGameInfo() {
+    if (_gameInfoCreated) return;
+    _gameInfoCreated = true;
+    _gameInfo = GameInfo(
+      roomDataId: widget.roomDataId,
+      ref: ref,
+      onEndGame: _showEndGameDialog,
+      autoReset: widget.onlyBoard,
+    );
+    _initStack();
+  }
+
+  void _showEndGameDialog(int status) {
+    String title = "TIE";
+    if (status == 0) title = "WHITE WINS";
+    else if (status == 1) title = "BLACK WINS";
+    showDialog(
+      context: context,
+      builder: (ctx) => CommonAlertDialog(title),
+    );
+  }
+
+  void _initStack() {
+    final info = _gameInfo;
+    mainStack = [
+      Column(
+        children: List.generate(
+          info.boardHeight,
+          (i) => Row(
+            children: List.generate(
+              info.boardLength,
+              (j) => Piece(
+                info.cellWidth,
+                initValue: info.board[i][j],
+                onCreation: (state) => info.pieceStates[i][j] = state,
+                onTap: info.onTapOnPiece(i, j),
+                isWhiteTurn: () =>
+                    ref.read(roomDataProvider(widget.roomDataId)).isWhiteTurn,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+
+    for (int i = 0; i < info.boardHeight; i++) {
+      for (int j = 0; j < info.boardLength; j++) {
+        mainStack.add(
+          FlipPiece(
+            info.cellWidth,
+            i,
+            j,
+            onCreation: (state) => info.flipPieceStates[i][j] = state,
+            getPieceStateFn: () => info.pieceStates[i][j]!,
+          ),
+        );
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await info.makeNextTurn(false);
+    });
+  }
+
+  Future<void> _resetGame() async {
+    final current = ref.read(roomDataProvider(widget.roomDataId));
+    await ref.read(roomDatasProvider.notifier).deleteRoom(current.id);
+    final newRoom = RoomData.freshFrom(current);
+    await ref.read(roomDatasProvider.notifier).createRoom(newRoom);
+    if (mounted) context.go('/game_room/${newRoom.id}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(roomDataProvider(widget.roomDataId));
+    _createGameInfo();
+
     final board = Container(
       color: Colors.grey[850],
       padding: const EdgeInsets.all(10),
@@ -113,67 +169,67 @@ class _GameRoomState extends State<GameRoom>
       ),
     );
 
-    if (widget.onlyBoard)
-      return ChangeNotifierProvider<RoomData>(
-        create: (context) => _gameInfo.roomData,
-        child: board,
-      );
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: ChangeNotifierProvider<RoomData>(
-        create: (context) => _gameInfo.roomData,
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  child: ScoreBoard(),
+    return RoomDataScope(
+      roomDataId: widget.roomDataId,
+      child: widget.onlyBoard
+          ? board
+          : Scaffold(
+              backgroundColor: Colors.black,
+              body: Padding(
+                padding: const EdgeInsets.all(15),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        child: ScoreBoard(forWhite: true, aboveBoard: true),
+                      ),
+                    ),
+                    board,
+                    Expanded(
+                      child: Container(
+                        child: ScoreBoard(
+                            forWhite: false, aboveBoard: false),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              board,
-              Expanded(
-                child: Container(
-                  child: ScoreBoard(aboveBoard: false, forWhite: false),
-                ),
+              floatingActionButton: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton(
+                    heroTag: "undo_button",
+                    child: Icon(Icons.undo),
+                    onPressed: _gameInfo.undo,
+                  ),
+                  SizedBox(width: 10),
+                  FloatingActionButton(
+                    heroTag: "reset_tag",
+                    onPressed: _resetGame,
+                    child: Icon(Icons.replay),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            heroTag: "undo_button",
-            child: Icon(Icons.undo),
-            onPressed: _gameInfo.undo,
-          ),
-          SizedBox(width: 10),
-          FloatingActionButton(
-            heroTag: "reset_tag",
-            onPressed: resetGame,
-            child: Icon(Icons.replay),
-          ),
-        ],
-      ),
+            ),
     );
   }
 }
 
-class ScoreBoard extends StatelessWidget {
+class ScoreBoard extends ConsumerWidget {
   const ScoreBoard({
-    Key? key,
+    super.key,
     this.forWhite = true,
     this.aboveBoard = true,
-  }) : super(key: key);
+  });
 
   final bool forWhite;
   final bool aboveBoard;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomDataId = RoomDataScope.of(context);
+    final room = ref.watch(roomDataProvider(roomDataId));
+
     return LayoutBuilder(builder: (context, constraints) {
       double height =
           min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
@@ -195,16 +251,12 @@ class ScoreBoard extends StatelessWidget {
                     width: height * 0.8,
                   ),
                   Icon(Icons.close_rounded),
-                  Consumer<RoomData>(
-                    builder: (context, roomData, child) {
-                      return Text(
-                        roomData.totalPieces(forWhite: forWhite).toString(),
-                        style: TextStyle(
-                          fontSize: height * 0.8,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    },
+                  Text(
+                    room.totalPieces(forWhite: forWhite).toString(),
+                    style: TextStyle(
+                      fontSize: height * 0.8,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   SizedBox(width: height * 0.3),
                   Icon(Icons.access_time),
@@ -221,63 +273,77 @@ class ScoreBoard extends StatelessWidget {
   }
 }
 
-class ChanceTimer extends StatefulWidget {
+class ChanceTimer extends ConsumerStatefulWidget {
   ChanceTimer(this.forWhite, this.fontSize);
 
   final bool forWhite;
   final double fontSize;
 
   @override
-  _ChanceTimerState createState() => _ChanceTimerState();
+  ConsumerState<ChanceTimer> createState() => _ChanceTimerState();
 }
 
-class _ChanceTimerState extends State<ChanceTimer> {
+class _ChanceTimerState extends ConsumerState<ChanceTimer> {
   late DateTime _time;
   Timer? _timer;
+  bool _initialized = false;
 
-  void toggleTimer() {
-    if (Provider.of<RoomData>(context, listen: false).isWhiteTurn ==
-        widget.forWhite)
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
-        continueTimer();
+  void _updateFromRoom(RoomData room) {
+    final duration = room.getTotalDuration(widget.forWhite);
+    final isActive = room.isWhiteTurn == widget.forWhite;
+    if (isActive) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _continueTimer());
+    } else {
+      _cancelTimer();
+    }
+    if (mounted) {
+      setState(() {
+        _time = DateTime(DateTime.now().year).add(duration);
       });
-    else
-      cancelTimer();
+    }
   }
 
-  void continueTimer() {
+  void _continueTimer() {
     if (_timer != null) return;
-    const onSec = const Duration(seconds: 1);
+    const onSec = Duration(seconds: 1);
     _timer = Timer.periodic(onSec, (Timer timer) {
-      setState(() {
-        _time = _time.add(onSec);
-      });
+      if (mounted) setState(() => _time = _time.add(onSec));
     });
   }
 
   @override
   void dispose() {
-    cancelTimer();
+    _cancelTimer();
     super.dispose();
   }
 
-  void cancelTimer() {
+  void _cancelTimer() {
     _timer?.cancel();
     _timer = null;
   }
 
   @override
   void initState() {
-    _time = DateTime(DateTime.now().year).add(
-        Provider.of<RoomData>(context, listen: false)
-            .getTotalDuration(widget.forWhite));
-    Provider.of<RoomData>(context, listen: false).addListener(toggleTimer);
-    toggleTimer();
     super.initState();
+    _time = DateTime(DateTime.now().year);
   }
 
   @override
   Widget build(BuildContext context) {
+    final roomDataId = RoomDataScope.of(context);
+    final room = ref.watch(roomDataProvider(roomDataId));
+
+    ref.listen(roomDataProvider(roomDataId), (prev, next) {
+      _updateFromRoom(next);
+    });
+
+    if (!_initialized) {
+      _initialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateFromRoom(room);
+      });
+    }
+
     return Text(
       _time.hour == 0
           ? DateFormat.ms().format(_time)

@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:othello/objects/room_data/room_data.dart';
-import 'package:provider/provider.dart';
 
 class Piece extends StatefulWidget {
-  Piece(this.cellWidth, {this.onCreation, this.initValue = -1, this.onTap});
+  Piece(
+    this.cellWidth, {
+    this.onCreation,
+    this.initValue = -1,
+    this.onTap,
+    this.isWhiteTurn,
+  });
 
   final void Function(PieceState state)? onCreation;
   final void Function(PieceState state)? onTap;
   final double cellWidth;
   final int initValue;
+  final bool Function()? isWhiteTurn;
 
   @override
   PieceState createState() => PieceState(initValue);
 }
 
 class PieceState extends State<Piece> {
-  PieceState(int value) : this._value = _valueFromBoardValue(value);
+  PieceState(int value) : _value = _valueFromBoardValue(value);
 
   int _value;
   bool possibleMove = false;
@@ -56,13 +61,13 @@ class PieceState extends State<Piece> {
     Widget child = Container();
 
     if (possibleMove && value == -1) {
-      final _roomData = Provider.of<RoomData>(context, listen: false);
+      final whiteTurn = widget.isWhiteTurn?.call() ?? true;
       child = Center(
         child: Container(
           width: widget.cellWidth / 2,
           height: widget.cellWidth / 2,
           decoration: BoxDecoration(
-            color: _roomData.isWhiteTurn ? Colors.white54 : Colors.black54,
+            color: whiteTurn ? Colors.white54 : Colors.black54,
             borderRadius: BorderRadius.circular(50),
           ),
         ),

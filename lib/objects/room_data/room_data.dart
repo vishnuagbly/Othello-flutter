@@ -1,17 +1,15 @@
 import 'dart:math';
-import 'dart:developer' as dev;
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:othello/extensions/nested_list.dart';
+import 'package:othello/objects/move_data/move_data.dart';
+import 'package:othello/objects/room_data/next_move_fn_ids.dart';
+import 'package:othello/objects/player/player.dart';
 import 'package:othello/utils/globals.dart';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:hive_ce/hive_ce.dart';
-import 'package:othello/objects/move_data/move_data.dart';
-import 'package:othello/objects/player/player.dart';
-
-part 'next_move_fns.dart';
+part 'room_data.freezed.dart';
+part 'room_data.g.dart';
 
 extension BoardExtensions on IList<IList<int>> {
   List<int> get flat => expand((row) => row).toList();
@@ -25,18 +23,21 @@ IList<IList<int>> fromFlatList(List<int> flat, int width) {
       temp.add(flat[i]);
       res.add(temp.lock);
       temp.clear();
-    } else
+    } else {
       temp.add(flat[i]);
+    }
   }
   return res.lock;
 }
 
+enum RoomType { offlinePvP, offlinePvC, offlineCvC }
+
 abstract class RoomDataLabels {
   static const roomId = 'roomId',
+      roomType = 'roomType',
       blackPlayer = 'blackPlayer',
       length = 'length',
       height = 'height',
-      hiveKey = 'hiveKey',
       whitePlayer = 'whitePlayer',
       playerIdTurn = 'playerIdTurn',
       currentBoard = 'currentBoard',
@@ -46,345 +47,206 @@ abstract class RoomDataLabels {
       timestamp = 'timestamp';
 }
 
-class RoomData extends ChangeNotifier {
-  RoomData._raw({
-    required this.id,
-    required this.hiveKey,
-    required this.blackPlayer,
-    required this.whitePlayer,
-    DateTime? timestamp,
-    IList<IList<int>>? currentBoard,
+class IListMoveDataConverter
+    implements JsonConverter<IList<MoveData>, List<dynamic>?> {
+  const IListMoveDataConverter();
+
+  @override
+  IList<MoveData> fromJson(List<dynamic>? json) {
+    if (json == null || json.isEmpty) return const IList.empty();
+    return json
+        .map((e) => MoveData.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toIList();
+  }
+
+  @override
+  List<dynamic> toJson(IList<MoveData> object) =>
+      object.map((e) => e.toJson()).toList();
+}
+
+@freezed
+sealed class RoomData with _$RoomData {
+  const RoomData._();
+
+
+  // Non-const: DateTime has no const constructor, and dropping const lets
+  // freezed's @Assert run against non-const-evaluable field expressions.
+  @Assert('blackPlayer.id != whitePlayer.id', 'black and white player must have different ids')
+  factory RoomData({
+    @JsonKey(name: RoomDataLabels.roomId) required String id,
+    @JsonKey(name: RoomDataLabels.roomType) @Default(RoomType.offlinePvP) RoomType roomType,
+    @JsonKey(name: RoomDataLabels.blackPlayer) required Player blackPlayer,
+    @JsonKey(name: RoomDataLabels.whitePlayer) required Player whitePlayer,
+    @JsonKey(name: RoomDataLabels.length) @Default(8) int length,
+    @JsonKey(name: RoomDataLabels.height) @Default(8) int height,
+    @JsonKey(name: RoomDataLabels.playerIdTurn) required String playerIdTurn,
+    @JsonKey(name: RoomDataLabels.currentBoard)
+    @IListBoardConverter()
+    required IList<IList<int>> currentBoard,
+    @JsonKey(name: RoomDataLabels.lastMoves)
+    @IListMoveDataConverter()
+    required IList<MoveData> lastMoves,
+    @JsonKey(name: RoomDataLabels.blackTotalDuration)
+    @DurationSecondsConverter()
+    @Default(Duration.zero)
+    Duration blackTotalDuration,
+    @JsonKey(name: RoomDataLabels.whiteTotalDuration)
+    @DurationSecondsConverter()
+    @Default(Duration.zero)
+    Duration whiteTotalDuration,
+    @JsonKey(name: RoomDataLabels.timestamp) required DateTime timestamp,
+  }) = _RoomData;
+
+  factory RoomData.fromJson(Map<String, dynamic> json) =>
+      _$RoomDataFromJson(json);
+
+  /// Private factory for new games: clamps dimensions, asserts distinct players,
+  /// and sets initial board, empty lastMoves, and current timestamp.
+  factory RoomData._raw({
+    required String id,
+    required RoomType roomType,
+    required Player blackPlayer,
+    required Player whitePlayer,
+    required String playerIdTurn,
     int length = 8,
     int height = 8,
-    IList<MoveData>? lastMoves,
-    Duration blackTotalDuration = const Duration(),
-    Duration whiteTotalDuration = const Duration(),
-    bool whiteFirstTurn = false,
-  })  : assert(blackPlayer.id != whitePlayer.id),
-        this.length = ((currentBoard?.length ?? 0) > 1)
-            ? (currentBoard?[0].length ?? length)
-            : length,
-        this.height = currentBoard?.length ?? height,
-        this._timestamp = timestamp ?? DateTime.now(),
-        this._currentBoard = currentBoard ?? _initializeBoard(length, height),
-        this.__playerIdTurn = whiteFirstTurn ? whitePlayer.id : blackPlayer.id,
-        this._lastMoves = lastMoves ?? const IList.empty(),
-        this._blackTotalDuration = blackTotalDuration,
-        this._whiteTotalDuration = whiteTotalDuration {
-    this._playerIdTurn =
-        this.__playerIdTurn; //To call set method for playerIdTurn
-    _updateLastMoves();
-  }
-
-  factory RoomData.fromKey(String key,
-      {bool resetGame = false,
-      height = 8,
-      length = 8,
-      whiteFirstTurn = false}) {
-    switch (key) {
-      case hiveOfflinePvCKey:
-        return RoomData.offlinePvC(
-            height: height,
-            length: length,
-            whiteFirstTurn: whiteFirstTurn,
-            resetGame: resetGame);
-
-      default:
-        return RoomData.offlinePvP(
-          height: height,
-          length: length,
-          whiteFirstTurn: whiteFirstTurn,
-          resetGame: resetGame,
-        );
-    }
-  }
-
-  factory RoomData.offlinePvP(
-      {bool resetGame = false,
-      int height = 8,
-      int length = 8,
-      bool whiteFirstTurn = false}) {
-    if (!resetGame) {
-      var room = fromStorage(hiveOfflinePvPKey);
-      if (room != null) return room;
-    }
-
-    height = max(2, height);
-    length = max(2, length);
-    return RoomData._raw(
-      id: hiveOfflinePvPKey,
-      hiveKey: hiveOfflinePvPKey,
-      blackPlayer: Player.create(),
-      whitePlayer: Player.create(),
-      whiteFirstTurn: whiteFirstTurn,
-      height: height,
-      length: length,
+  }) {
+    final len = max(2, length);
+    final h = max(2, height);
+    return RoomData(
+      id: id,
+      roomType: roomType,
+      blackPlayer: blackPlayer,
+      whitePlayer: whitePlayer,
+      playerIdTurn: playerIdTurn,
+      length: len,
+      height: h,
+      currentBoard: initializeBoard(len, h),
+      lastMoves: const IList.empty(),
+      timestamp: DateTime.now(),
     );
   }
 
-  factory RoomData.offlinePvC(
-      {int height = 8,
-      int length = 8,
-      bool resetGame = false,
-      bool whiteFirstTurn = false,
-      bool mainPlayerIsWhite = false}) {
-    if (!resetGame) {
-      var room = fromStorage(hiveOfflinePvCKey);
-      if (room != null) return room;
-    }
-
-    Player computerPlayer =
-            Player.create(nextMoveFnId: NextMoveFns.offlineTempId),
-        mainPlayer = Player.create();
-
+  /// New room with same type and player config as [existing]; fresh id, board, and timestamp.
+  factory RoomData.freshFrom(RoomData existing) {
+    final black = Player.create(nextMoveFnId: existing.blackPlayer.nextMoveFnId);
+    final white = Player.create(nextMoveFnId: existing.whitePlayer.nextMoveFnId);
     return RoomData._raw(
-      id: hiveOfflinePvCKey,
-      hiveKey: hiveOfflinePvCKey,
-      blackPlayer: mainPlayerIsWhite ? computerPlayer : mainPlayer,
-      whitePlayer: mainPlayerIsWhite ? mainPlayer : computerPlayer,
-      whiteFirstTurn: whiteFirstTurn,
-      height: height,
+      id: Globals.uuid.v1(),
+      roomType: existing.roomType,
+      blackPlayer: black,
+      whitePlayer: white,
+      playerIdTurn: existing.isWhiteTurn ? white.id : black.id,
+      length: existing.length,
+      height: existing.height,
+    );
+  }
+
+  factory RoomData.offlinePvP({
+    int height = 8,
+    int length = 8,
+    bool whiteFirstTurn = false,
+  }) {
+    final black = Player.create();
+    final white = Player.create();
+    return RoomData._raw(
+      id: Globals.uuid.v1(),
+      roomType: RoomType.offlinePvP,
+      blackPlayer: black,
+      whitePlayer: white,
+      playerIdTurn: whiteFirstTurn ? white.id : black.id,
       length: length,
+      height: height,
+    );
+  }
+
+  factory RoomData.offlinePvC({
+    int height = 8,
+    int length = 8,
+    bool whiteFirstTurn = false,
+    bool mainPlayerIsWhite = false,
+  }) {
+    final computerPlayer = Player.create(nextMoveFnId: NextMoveFnIds.offlineTempId);
+    final mainPlayer = Player.create();
+    final black = mainPlayerIsWhite ? computerPlayer : mainPlayer;
+    final white = mainPlayerIsWhite ? mainPlayer : computerPlayer;
+    return RoomData._raw(
+      id: Globals.uuid.v1(),
+      roomType: RoomType.offlinePvC,
+      blackPlayer: black,
+      whitePlayer: white,
+      playerIdTurn: whiteFirstTurn ? white.id : black.id,
+      length: length,
+      height: height,
     );
   }
 
   factory RoomData.offlineCvC({int length = 8, int height = 8}) {
+    final black = Player.create(nextMoveFnId: NextMoveFnIds.offlineDelayedTempId);
+    final white = Player.create(nextMoveFnId: NextMoveFnIds.offlineDelayedTempId);
     return RoomData._raw(
       id: Globals.uuid.v1(),
-      hiveKey: null,
-      blackPlayer:
-          Player.create(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
-      whitePlayer:
-          Player.create(nextMoveFnId: NextMoveFns.offlineDelayedTempId),
+      roomType: RoomType.offlineCvC,
+      blackPlayer: black,
+      whitePlayer: white,
+      playerIdTurn: white.id,
       length: length,
       height: height,
     );
   }
 
-  static RoomData? fromStorage(String hiveKey) {
-    var box = Hive.box(hiveBoxName);
-    var _rawData = box.get(hiveKey);
-    if (_rawData != null) {
-      var map = Map<String, dynamic>.from(_rawData);
-      return RoomData.fromMap(map);
-    }
-  }
-
-  factory RoomData.fromMap(Map<String, dynamic> map) {
-    String playerTurnId = map[RoomDataLabels.playerIdTurn];
-    Player whitePlayer = Player.fromJson(
-        Map<String, dynamic>.from(map[RoomDataLabels.whitePlayer] ?? {}));
-    bool whiteTurn = playerTurnId == whitePlayer.id;
-    DateTime timestamp;
-    int length = map[RoomDataLabels.length] ?? 8,
-        height = map[RoomDataLabels.height] ?? 8;
-    List<int>? flatBoard =
-        map[RoomDataLabels.currentBoard]?.cast<int>()?.toList();
-
-    IList<IList<int>> parsedBoard = fromFlatList(flatBoard ?? [], length);
-
-    final gotTimestamp = map[RoomDataLabels.timestamp];
-    if (gotTimestamp is DateTime)
-      timestamp = gotTimestamp;
-    else
-      timestamp = gotTimestamp.toDate();
-
-    return RoomData._raw(
-      id: map[RoomDataLabels.roomId],
-      length: length,
-      height: height,
-      hiveKey: map[RoomDataLabels.hiveKey] ?? hiveOfflinePvPKey,
-      blackPlayer: Player.fromJson(
-          Map<String, dynamic>.from(map[RoomDataLabels.blackPlayer] ?? {})),
-      whitePlayer: whitePlayer,
-      timestamp: timestamp,
-      currentBoard: parsedBoard.isEmpty ? null : parsedBoard,
-      lastMoves: (map[RoomDataLabels.lastMoves] as List?)
-              ?.map((e) =>
-                  MoveData.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toIList(),
-      blackTotalDuration:
-          Duration(seconds: map[RoomDataLabels.blackTotalDuration] ?? 0),
-      whiteTotalDuration:
-          Duration(seconds: map[RoomDataLabels.whiteTotalDuration] ?? 0),
-      whiteFirstTurn: whiteTurn,
-    );
-  }
-
-  static const hiveBoxName = 'Rooms';
-  static const hiveOfflinePvPKey = 'offlinePvP';
-  static const hiveOfflinePvCKey = 'offlinePvC';
-  final String id;
-  final String? hiveKey;
-  final Player blackPlayer, whitePlayer;
-  final int height, length;
-  String __playerIdTurn;
-  IList<IList<int>> _currentBoard;
-  IList<MoveData> _lastMoves;
-  Duration _blackTotalDuration, _whiteTotalDuration;
-  DateTime _timestamp;
-
-  int get currentPlayerMove => _playerMove(isWhiteTurn);
-
-  static int _playerMove(bool whiteTurn) => whiteTurn ? 0 : 1;
-
-  String playerId(bool isWhiteTurn) =>
-      isWhiteTurn ? whitePlayer.id : blackPlayer.id;
-
-  bool get isWhiteTurn => _playerIdTurn == whitePlayer.id;
-
-  bool get isManualTurn => _currentPlayer.nextMoveFnId == null;
-
-  Player get _currentPlayer => isWhiteTurn ? whitePlayer : blackPlayer;
-
-  String get _playerIdTurn => __playerIdTurn;
-
-  set _playerIdTurn(String str) {
-    __playerIdTurn = str;
-    notifyListeners();
-  }
-
-  Duration get blackTotalDuration => _blackTotalDuration;
-
-  Duration get whiteTotalDuration => _whiteTotalDuration;
-
-  Duration getTotalDuration(bool forWhite) =>
-      forWhite ? _whiteTotalDuration : blackTotalDuration;
-
-  IList<MoveData> get lastMoves => _lastMoves;
-
-  DateTime get timestamp => _timestamp;
-
-  IList<IList<int>> get currentBoard => _currentBoard;
-
-  Future<List<int>?> get nextTurn => _currentPlayer.nextTurn(this);
-
-  void _subtractDuration(String playerIdTurn, Duration duration) {
-    if (playerIdTurn == whitePlayer.id)
-      _whiteTotalDuration -= duration;
-    else if (playerIdTurn == blackPlayer.id) _blackTotalDuration -= duration;
-  }
-
-  Map<String, dynamic> toMap() => {
-        RoomDataLabels.roomId: id,
-        RoomDataLabels.hiveKey: hiveKey,
-        RoomDataLabels.length: length,
-        RoomDataLabels.height: height,
-        RoomDataLabels.blackPlayer: blackPlayer.toJson(),
-        RoomDataLabels.whitePlayer: whitePlayer.toJson(),
-        RoomDataLabels.playerIdTurn: __playerIdTurn,
-        RoomDataLabels.currentBoard: _currentBoard.flat,
-        RoomDataLabels.lastMoves: _lastMoves.map((e) => e.toJson()).toList(),
-        RoomDataLabels.blackTotalDuration: _blackTotalDuration.inSeconds,
-        RoomDataLabels.whiteTotalDuration: _whiteTotalDuration.inSeconds,
-        RoomDataLabels.timestamp: _timestamp,
-      };
-
-  int totalPieces({forWhite = true}) {
-    int res = 0;
-    for (int i = 0; i < height; i++)
-      for (int j = 0; j < length; j++)
-        if (_currentBoard[i][j] == _playerMove(forWhite)) res++;
-
-    return res;
-  }
-
-  static IList<IList<int>> _initializeBoard(int length, int height) {
+  static IList<IList<int>> initializeBoard(int length, int height) {
     List<List<int>> board = [];
     for (int i = 0; i < height; i++) {
       board.add(List.filled(length, -1));
     }
-
     int lMidSecond = length ~/ 2, hMidSecond = height ~/ 2;
     board[hMidSecond - 1][lMidSecond - 1] = 0;
     board[hMidSecond][lMidSecond] = 0;
     board[hMidSecond - 1][lMidSecond] = 1;
     board[hMidSecond][lMidSecond - 1] = 1;
-
     return board.deepLock;
   }
 
-  void changeTurn() {
-    _flipTurn();
-    var possibleMoves = getPossibleMovesList();
-    if (possibleMoves.length <= 0) _flipTurn();
-  }
+  int get currentPlayerMove => _playerMove(isWhiteTurn);
+  
+  static int _playerMove(bool whiteTurn) => whiteTurn ? 0 : 1;
 
-  void _flipTurn() =>
-      _playerIdTurn = isWhiteTurn ? blackPlayer.id : whitePlayer.id;
+  String playerId(bool isWhiteTurn) =>
+      isWhiteTurn ? whitePlayer.id : blackPlayer.id;
 
-  List<List<int>> getPossibleMovesList() {
-    List<List<int>> res = [];
+  bool get isWhiteTurn => playerIdTurn == whitePlayer.id;
+
+  bool get isManualTurn => _currentPlayer.nextMoveFnId == null;
+
+  Player get _currentPlayer => isWhiteTurn ? whitePlayer : blackPlayer;
+
+  Duration getTotalDuration(bool forWhite) =>
+      forWhite ? whiteTotalDuration : blackTotalDuration;
+
+  Future<List<int>?> get nextTurn => _currentPlayer.nextTurn(this);
+
+  int totalPieces({bool forWhite = true}) {
+    int res = 0;
     for (int i = 0; i < height; i++) {
       for (int j = 0; j < length; j++) {
-        if (_currentBoard[i][j] != -1) continue;
-        if (getPiecesToFlip(i, j, currentPlayerMove).length > 0)
-          res.add([i, j]);
+        if (currentBoard[i][j] == _playerMove(forWhite)) res++;
       }
     }
     return res;
   }
 
-  void reset() {
-    _lastMoves = const IList.empty();
-    _currentBoard = _initializeBoard(length, height);
-    _blackTotalDuration = Duration.zero;
-    _whiteTotalDuration = Duration.zero;
-    _timestamp = DateTime.now();
-  }
-
-  void undo({bool debug = false}) {
-    if (_lastMoves.length < 2) return;
-    _lastMoves = _lastMoves.removeLast();
-    _currentBoard = _lastMoves.last.board;
-    _playerIdTurn = _lastMoves.last.playerIdTurn;
-    _subtractDuration(playerId(!isWhiteTurn), _lastMoves.last.duration);
-    _timestamp = _lastMoves.last.timestamp;
-    if (!isManualTurn) return undo();
-    _saveGameOffline();
-    lastMovesStats(debug);
-  }
-
-  List<List<List<int>>?> makeMove(int i, int j, {bool debug = false}) {
-    lastMovesStats(debug);
-    _currentBoard = _currentBoard.replace(
-        i, _currentBoard[i].replace(j, currentPlayerMove));
-    var piecesToFlip = getPiecesToFlip(i, j, _currentBoard[i][j]);
-    if (isWhiteTurn)
-      _whiteTotalDuration += DateTime.now().difference(_timestamp);
-    else
-      _blackTotalDuration += DateTime.now().difference(_timestamp);
-    _flipPieces(piecesToFlip);
-    _timestamp = DateTime.now();
-    changeTurn();
-    _updateLastMoves();
-    _saveGameOffline();
-    return piecesToFlip;
-  }
-
-  void _saveGameOffline() async {
-    if (hiveKey == null) return;
-    var box = Hive.box(hiveBoxName);
-    await box.put(hiveKey, toMap());
-    print("successfully saved");
-  }
-
-  void _updateLastMoves({bool debug = false}) {
-    if (debug) dev.log('isWhiteTurn: $isWhiteTurn', name: '_updateLastMoves');
-    final currentMove = MoveData.create(
-        board: _currentBoard,
-        duration: DateTime.now().difference(_timestamp),
-        playerIdTurn: _playerIdTurn,
-        timestamp: _timestamp);
-    _lastMoves = _lastMoves.add(currentMove);
-    lastMovesStats(debug);
-  }
-
-  void lastMovesStats(bool debug) {
-    if (!debug) return;
-    dev.log(
-        'lastMove.length: ${lastMoves.length} lastMoves: ${lastMoves.print()}',
-        name: "lastMovesStatus");
+  List<List<int>> getPossibleMovesList() {
+    List<List<int>> res = [];
+    for (int i = 0; i < height; i++) {
+      for (int j = 0; j < length; j++) {
+        if (currentBoard[i][j] != -1) continue;
+        if (getPiecesToFlip(i, j, currentPlayerMove).length > 0) {
+          res.add([i, j]);
+        }
+      }
+    }
+    return res;
   }
 
   ///-1 for tie
@@ -399,14 +261,15 @@ class RoomData extends ChangeNotifier {
 
   List<int> _getTotalPieces() {
     List<int> res = [0, 0, 0];
-    for (int i = 0; i < _currentBoard.length; i++) {
-      for (int j = 0; j < _currentBoard[i].length; j++) {
-        if (_currentBoard[i][j] == 0)
+    for (int i = 0; i < currentBoard.length; i++) {
+      for (int j = 0; j < currentBoard[i].length; j++) {
+        if (currentBoard[i][j] == 0) {
           res[0]++;
-        else if (_currentBoard[i][j] == 1)
+        } else if (currentBoard[i][j] == 1) {
           res[1]++;
-        else
+        } else {
           res[2]++;
+        }
       }
     }
     return res;
@@ -434,11 +297,11 @@ class RoomData extends ChangeNotifier {
               currentI >= this.height ||
               currentJ < 0 ||
               currentJ >= this.length ||
-              _currentBoard[currentI][currentJ] == -1) {
+              currentBoard[currentI][currentJ] == -1) {
             step = -1;
             continue;
           }
-          if ((step == 1 && _currentBoard[currentI][currentJ] == value)) {
+          if ((step == 1 && currentBoard[currentI][currentJ] == value)) {
             step = -1;
             flipping = true;
             continue;
@@ -451,15 +314,5 @@ class RoomData extends ChangeNotifier {
       }
     }
     return piecesToFlip;
-  }
-
-  void _flipPieces(List<List<List<int>>?> piecesToFlip) {
-    for (var levelPieces in piecesToFlip)
-      if (levelPieces != null)
-        for (var pair in levelPieces) {
-          int i = pair.first, j = pair.last;
-          _currentBoard = _currentBoard.replace(
-              i, _currentBoard[i].replace(j, 1 - _currentBoard[i][j]));
-        }
   }
 }
