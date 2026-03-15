@@ -8,7 +8,6 @@ import 'package:othello/utils/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  await Hive.openBox('Rooms');
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
