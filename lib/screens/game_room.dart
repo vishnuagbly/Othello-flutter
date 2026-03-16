@@ -60,11 +60,7 @@ class _GameRoomGateState extends ConsumerState<GameRoomGate> {
 }
 
 class GameRoom extends ConsumerStatefulWidget {
-  const GameRoom({
-    super.key,
-    required this.roomDataId,
-    this.onlyBoard = false,
-  });
+  const GameRoom({super.key, required this.roomDataId, this.onlyBoard = false});
 
   final String roomDataId;
   final bool onlyBoard;
@@ -91,12 +87,11 @@ class _GameRoomState extends ConsumerState<GameRoom>
 
   void _showEndGameDialog(int status) {
     String title = "TIE";
-    if (status == 0) title = "WHITE WINS";
-    else if (status == 1) title = "BLACK WINS";
-    showDialog(
-      context: context,
-      builder: (ctx) => CommonAlertDialog(title),
-    );
+    if (status == 0)
+      title = "WHITE WINS";
+    else if (status == 1)
+      title = "BLACK WINS";
+    showDialog(context: context, builder: (ctx) => CommonAlertDialog(title));
   }
 
   void _initStack() {
@@ -179,9 +174,7 @@ class _GameRoomState extends ConsumerState<GameRoom>
         width: notifier.cellWidth * notifier.boardLength,
         height: notifier.cellWidth * notifier.boardHeight,
         color: Colors.green[600],
-        child: Stack(
-          children: mainStack,
-        ),
+        child: Stack(children: mainStack),
       ),
     );
 
@@ -203,8 +196,7 @@ class _GameRoomState extends ConsumerState<GameRoom>
                     board,
                     Expanded(
                       child: Container(
-                        child: ScoreBoard(
-                            forWhite: false, aboveBoard: false),
+                        child: ScoreBoard(forWhite: false, aboveBoard: false),
                       ),
                     ),
                   ],
@@ -232,11 +224,7 @@ class _GameRoomState extends ConsumerState<GameRoom>
 }
 
 class ScoreBoard extends ConsumerWidget {
-  const ScoreBoard({
-    super.key,
-    this.forWhite = true,
-    this.aboveBoard = true,
-  });
+  const ScoreBoard({super.key, this.forWhite = true, this.aboveBoard = true});
 
   final bool forWhite;
   final bool aboveBoard;
@@ -246,46 +234,52 @@ class ScoreBoard extends ConsumerWidget {
     final roomDataId = RoomDataScope.of(context);
     final room = ref.watch(roomDataProvider(roomDataId));
 
-    return LayoutBuilder(builder: (context, constraints) {
-      double height =
-          min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
-      return Align(
-        alignment: aboveBoard ? Alignment.bottomRight : Alignment.topLeft,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: 10),
-            Container(
-              color: Colors.brown.withAlpha(100),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image(
-                    image: AssetImage(
-                        'assets/${forWhite ? 'flip_0' : 'flip_1'}/frame_0.png'),
-                    width: height * 0.8,
-                  ),
-                  Icon(Icons.close_rounded),
-                  Text(
-                    room.totalPieces(forWhite: forWhite).toString(),
-                    style: TextStyle(
-                      fontSize: height * 0.8,
-                      fontWeight: FontWeight.w500,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double height =
+            min(constraints.maxHeight, constraints.maxWidth * 0.17) / 2;
+        return Align(
+          alignment: aboveBoard ? Alignment.bottomRight : Alignment.topLeft,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 10),
+              Container(
+                color: Colors.brown.withAlpha(100),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 2,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image(
+                      image: AssetImage(
+                        'assets/${forWhite ? 'flip_0' : 'flip_1'}/frame_0.png',
+                      ),
+                      width: height * 0.8,
                     ),
-                  ),
-                  SizedBox(width: height * 0.3),
-                  Icon(Icons.access_time),
-                  SizedBox(width: height * 0.3),
-                  ChanceTimer(forWhite, height * 0.8),
-                ],
+                    Icon(Icons.close_rounded),
+                    Text(
+                      room.totalPieces(forWhite: forWhite).toString(),
+                      style: TextStyle(
+                        fontSize: height * 0.8,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(width: height * 0.3),
+                    Icon(Icons.access_time),
+                    SizedBox(width: height * 0.3),
+                    ChanceTimer(forWhite, height * 0.8),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 10)
-          ],
-        ),
-      );
-    });
+              SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -306,7 +300,7 @@ class _ChanceTimerState extends ConsumerState<ChanceTimer> {
 
   void _updateFromRoom(RoomData room) {
     final duration = room.getTotalDuration(widget.forWhite);
-    final isActive = room.isWhiteTurn == widget.forWhite;
+    final isActive = (room.isWhiteTurn == widget.forWhite) && !room.isGameEnded;
     if (isActive) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _continueTimer());
     } else {

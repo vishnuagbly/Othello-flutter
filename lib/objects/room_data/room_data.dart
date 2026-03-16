@@ -236,6 +236,8 @@ sealed class RoomData with _$RoomData {
     return res;
   }
 
+  bool get isGameEnded => getPossibleMovesList().isEmpty;
+
   List<List<int>> getPossibleMovesList() {
     List<List<int>> res = [];
     for (int i = 0; i < height; i++) {
