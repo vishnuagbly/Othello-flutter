@@ -40,10 +40,10 @@ class _CustomButtonState extends State<CustomButton> {
           child: ElevatedButton(
             key: _key,
             style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
                 padding: EdgeInsets.zero,
                 textStyle: GoogleFonts.montserrat(
-                  color: Colors.white,
                   fontSize: Globals.maxScreenWidth * 0.04,
                   fontWeight: FontWeight.w700,
                 )),
