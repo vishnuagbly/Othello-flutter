@@ -41,8 +41,9 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
     final room = state[id];
     if (room == null) return false;
     RoomData? next = _applyUndo(room);
-    /*TODO: check this, with this implementation currently, we can only undo,
-       after more than 2 moves. */
+    /* Here we need lastMoves length to at least be 2, since based on the
+     implementation of [_applyUndo], it get lastToLastMoves as well, which can
+     only be available in-case the length >= 2 */
     while (next != null && !next.isManualTurn && next.lastMoves.length >= 2) {
       next = _applyUndo(next);
     }
