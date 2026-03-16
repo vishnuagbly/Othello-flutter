@@ -32,21 +32,6 @@ IList<IList<int>> fromFlatList(List<int> flat, int width) {
 
 enum RoomType { offlinePvP, offlinePvC, offlineCvC }
 
-abstract class RoomDataLabels {
-  static const roomId = 'roomId',
-      roomType = 'roomType',
-      blackPlayer = 'blackPlayer',
-      length = 'length',
-      height = 'height',
-      whitePlayer = 'whitePlayer',
-      playerIdTurn = 'playerIdTurn',
-      currentBoard = 'currentBoard',
-      lastMoves = 'lastMoves',
-      blackTotalDuration = 'blackTotalDuration',
-      whiteTotalDuration = 'whiteTotalDuration',
-      timestamp = 'timestamp';
-}
-
 class IListMoveDataConverter
     implements JsonConverter<IList<MoveData>, List<dynamic>?> {
   const IListMoveDataConverter();
@@ -73,28 +58,18 @@ sealed class RoomData with _$RoomData {
   // freezed's @Assert run against non-const-evaluable field expressions.
   @Assert('blackPlayer.id != whitePlayer.id', 'black and white player must have different ids')
   factory RoomData({
-    @JsonKey(name: RoomDataLabels.roomId) required String id,
-    @JsonKey(name: RoomDataLabels.roomType) @Default(RoomType.offlinePvP) RoomType roomType,
-    @JsonKey(name: RoomDataLabels.blackPlayer) required Player blackPlayer,
-    @JsonKey(name: RoomDataLabels.whitePlayer) required Player whitePlayer,
-    @JsonKey(name: RoomDataLabels.length) @Default(8) int length,
-    @JsonKey(name: RoomDataLabels.height) @Default(8) int height,
-    @JsonKey(name: RoomDataLabels.playerIdTurn) required String playerIdTurn,
-    @JsonKey(name: RoomDataLabels.currentBoard)
-    @IListBoardConverter()
-    required IList<IList<int>> currentBoard,
-    @JsonKey(name: RoomDataLabels.lastMoves)
-    @IListMoveDataConverter()
-    required IList<MoveData> lastMoves,
-    @JsonKey(name: RoomDataLabels.blackTotalDuration)
-    @DurationSecondsConverter()
-    @Default(Duration.zero)
-    Duration blackTotalDuration,
-    @JsonKey(name: RoomDataLabels.whiteTotalDuration)
-    @DurationSecondsConverter()
-    @Default(Duration.zero)
-    Duration whiteTotalDuration,
-    @JsonKey(name: RoomDataLabels.timestamp) required DateTime timestamp,
+    required String id,
+    @Default(RoomType.offlinePvP) RoomType roomType,
+    required Player blackPlayer,
+    required Player whitePlayer,
+    @Default(8) int length,
+    @Default(8) int height,
+    required String playerIdTurn,
+    @IListBoardConverter() required IList<IList<int>> currentBoard,
+    @IListMoveDataConverter() required IList<MoveData> lastMoves,
+    @DurationSecondsConverter() @Default(Duration.zero) Duration blackTotalDuration,
+    @DurationSecondsConverter() @Default(Duration.zero) Duration whiteTotalDuration,
+    required DateTime timestamp,
   }) = _RoomData;
 
   factory RoomData.fromJson(Map<String, dynamic> json) =>

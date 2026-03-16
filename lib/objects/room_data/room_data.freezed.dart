@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RoomData {
 
-@JsonKey(name: RoomDataLabels.roomId) String get id;@JsonKey(name: RoomDataLabels.roomType) RoomType get roomType;@JsonKey(name: RoomDataLabels.blackPlayer) Player get blackPlayer;@JsonKey(name: RoomDataLabels.whitePlayer) Player get whitePlayer;@JsonKey(name: RoomDataLabels.length) int get length;@JsonKey(name: RoomDataLabels.height) int get height;@JsonKey(name: RoomDataLabels.playerIdTurn) String get playerIdTurn;@JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter() IList<IList<int>> get currentBoard;@JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter() IList<MoveData> get lastMoves;@JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter() Duration get blackTotalDuration;@JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter() Duration get whiteTotalDuration;@JsonKey(name: RoomDataLabels.timestamp) DateTime get timestamp;
+ String get id; RoomType get roomType; Player get blackPlayer; Player get whitePlayer; int get length; int get height; String get playerIdTurn;@IListBoardConverter() IList<IList<int>> get currentBoard;@IListMoveDataConverter() IList<MoveData> get lastMoves;@DurationSecondsConverter() Duration get blackTotalDuration;@DurationSecondsConverter() Duration get whiteTotalDuration; DateTime get timestamp;
 /// Create a copy of RoomData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $RoomDataCopyWith<$Res>  {
   factory $RoomDataCopyWith(RoomData value, $Res Function(RoomData) _then) = _$RoomDataCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: RoomDataLabels.roomId) String id,@JsonKey(name: RoomDataLabels.roomType) RoomType roomType,@JsonKey(name: RoomDataLabels.blackPlayer) Player blackPlayer,@JsonKey(name: RoomDataLabels.whitePlayer) Player whitePlayer,@JsonKey(name: RoomDataLabels.length) int length,@JsonKey(name: RoomDataLabels.height) int height,@JsonKey(name: RoomDataLabels.playerIdTurn) String playerIdTurn,@JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter() IList<IList<int>> currentBoard,@JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter() IList<MoveData> lastMoves,@JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter() Duration blackTotalDuration,@JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter() Duration whiteTotalDuration,@JsonKey(name: RoomDataLabels.timestamp) DateTime timestamp
+ String id, RoomType roomType, Player blackPlayer, Player whitePlayer, int length, int height, String playerIdTurn,@IListBoardConverter() IList<IList<int>> currentBoard,@IListMoveDataConverter() IList<MoveData> lastMoves,@DurationSecondsConverter() Duration blackTotalDuration,@DurationSecondsConverter() Duration whiteTotalDuration, DateTime timestamp
 });
 
 
@@ -179,7 +179,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: RoomDataLabels.roomId)  String id, @JsonKey(name: RoomDataLabels.roomType)  RoomType roomType, @JsonKey(name: RoomDataLabels.blackPlayer)  Player blackPlayer, @JsonKey(name: RoomDataLabels.whitePlayer)  Player whitePlayer, @JsonKey(name: RoomDataLabels.length)  int length, @JsonKey(name: RoomDataLabels.height)  int height, @JsonKey(name: RoomDataLabels.playerIdTurn)  String playerIdTurn, @JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter()  IList<IList<int>> currentBoard, @JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter()  IList<MoveData> lastMoves, @JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter()  Duration blackTotalDuration, @JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter()  Duration whiteTotalDuration, @JsonKey(name: RoomDataLabels.timestamp)  DateTime timestamp)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  RoomType roomType,  Player blackPlayer,  Player whitePlayer,  int length,  int height,  String playerIdTurn, @IListBoardConverter()  IList<IList<int>> currentBoard, @IListMoveDataConverter()  IList<MoveData> lastMoves, @DurationSecondsConverter()  Duration blackTotalDuration, @DurationSecondsConverter()  Duration whiteTotalDuration,  DateTime timestamp)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RoomData() when $default != null:
 return $default(_that.id,_that.roomType,_that.blackPlayer,_that.whitePlayer,_that.length,_that.height,_that.playerIdTurn,_that.currentBoard,_that.lastMoves,_that.blackTotalDuration,_that.whiteTotalDuration,_that.timestamp);case _:
@@ -200,7 +200,7 @@ return $default(_that.id,_that.roomType,_that.blackPlayer,_that.whitePlayer,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: RoomDataLabels.roomId)  String id, @JsonKey(name: RoomDataLabels.roomType)  RoomType roomType, @JsonKey(name: RoomDataLabels.blackPlayer)  Player blackPlayer, @JsonKey(name: RoomDataLabels.whitePlayer)  Player whitePlayer, @JsonKey(name: RoomDataLabels.length)  int length, @JsonKey(name: RoomDataLabels.height)  int height, @JsonKey(name: RoomDataLabels.playerIdTurn)  String playerIdTurn, @JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter()  IList<IList<int>> currentBoard, @JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter()  IList<MoveData> lastMoves, @JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter()  Duration blackTotalDuration, @JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter()  Duration whiteTotalDuration, @JsonKey(name: RoomDataLabels.timestamp)  DateTime timestamp)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  RoomType roomType,  Player blackPlayer,  Player whitePlayer,  int length,  int height,  String playerIdTurn, @IListBoardConverter()  IList<IList<int>> currentBoard, @IListMoveDataConverter()  IList<MoveData> lastMoves, @DurationSecondsConverter()  Duration blackTotalDuration, @DurationSecondsConverter()  Duration whiteTotalDuration,  DateTime timestamp)  $default,) {final _that = this;
 switch (_that) {
 case _RoomData():
 return $default(_that.id,_that.roomType,_that.blackPlayer,_that.whitePlayer,_that.length,_that.height,_that.playerIdTurn,_that.currentBoard,_that.lastMoves,_that.blackTotalDuration,_that.whiteTotalDuration,_that.timestamp);}
@@ -217,7 +217,7 @@ return $default(_that.id,_that.roomType,_that.blackPlayer,_that.whitePlayer,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: RoomDataLabels.roomId)  String id, @JsonKey(name: RoomDataLabels.roomType)  RoomType roomType, @JsonKey(name: RoomDataLabels.blackPlayer)  Player blackPlayer, @JsonKey(name: RoomDataLabels.whitePlayer)  Player whitePlayer, @JsonKey(name: RoomDataLabels.length)  int length, @JsonKey(name: RoomDataLabels.height)  int height, @JsonKey(name: RoomDataLabels.playerIdTurn)  String playerIdTurn, @JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter()  IList<IList<int>> currentBoard, @JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter()  IList<MoveData> lastMoves, @JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter()  Duration blackTotalDuration, @JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter()  Duration whiteTotalDuration, @JsonKey(name: RoomDataLabels.timestamp)  DateTime timestamp)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  RoomType roomType,  Player blackPlayer,  Player whitePlayer,  int length,  int height,  String playerIdTurn, @IListBoardConverter()  IList<IList<int>> currentBoard, @IListMoveDataConverter()  IList<MoveData> lastMoves, @DurationSecondsConverter()  Duration blackTotalDuration, @DurationSecondsConverter()  Duration whiteTotalDuration,  DateTime timestamp)?  $default,) {final _that = this;
 switch (_that) {
 case _RoomData() when $default != null:
 return $default(_that.id,_that.roomType,_that.blackPlayer,_that.whitePlayer,_that.length,_that.height,_that.playerIdTurn,_that.currentBoard,_that.lastMoves,_that.blackTotalDuration,_that.whiteTotalDuration,_that.timestamp);case _:
@@ -232,21 +232,21 @@ return $default(_that.id,_that.roomType,_that.blackPlayer,_that.whitePlayer,_tha
 @JsonSerializable()
 
 class _RoomData extends RoomData {
-   _RoomData({@JsonKey(name: RoomDataLabels.roomId) required this.id, @JsonKey(name: RoomDataLabels.roomType) this.roomType = RoomType.offlinePvP, @JsonKey(name: RoomDataLabels.blackPlayer) required this.blackPlayer, @JsonKey(name: RoomDataLabels.whitePlayer) required this.whitePlayer, @JsonKey(name: RoomDataLabels.length) this.length = 8, @JsonKey(name: RoomDataLabels.height) this.height = 8, @JsonKey(name: RoomDataLabels.playerIdTurn) required this.playerIdTurn, @JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter() required this.currentBoard, @JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter() required this.lastMoves, @JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter() this.blackTotalDuration = Duration.zero, @JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter() this.whiteTotalDuration = Duration.zero, @JsonKey(name: RoomDataLabels.timestamp) required this.timestamp}): assert(blackPlayer.id != whitePlayer.id, 'black and white player must have different ids'),super._();
+   _RoomData({required this.id, this.roomType = RoomType.offlinePvP, required this.blackPlayer, required this.whitePlayer, this.length = 8, this.height = 8, required this.playerIdTurn, @IListBoardConverter() required this.currentBoard, @IListMoveDataConverter() required this.lastMoves, @DurationSecondsConverter() this.blackTotalDuration = Duration.zero, @DurationSecondsConverter() this.whiteTotalDuration = Duration.zero, required this.timestamp}): assert(blackPlayer.id != whitePlayer.id, 'black and white player must have different ids'),super._();
   factory _RoomData.fromJson(Map<String, dynamic> json) => _$RoomDataFromJson(json);
 
-@override@JsonKey(name: RoomDataLabels.roomId) final  String id;
-@override@JsonKey(name: RoomDataLabels.roomType) final  RoomType roomType;
-@override@JsonKey(name: RoomDataLabels.blackPlayer) final  Player blackPlayer;
-@override@JsonKey(name: RoomDataLabels.whitePlayer) final  Player whitePlayer;
-@override@JsonKey(name: RoomDataLabels.length) final  int length;
-@override@JsonKey(name: RoomDataLabels.height) final  int height;
-@override@JsonKey(name: RoomDataLabels.playerIdTurn) final  String playerIdTurn;
-@override@JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter() final  IList<IList<int>> currentBoard;
-@override@JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter() final  IList<MoveData> lastMoves;
-@override@JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter() final  Duration blackTotalDuration;
-@override@JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter() final  Duration whiteTotalDuration;
-@override@JsonKey(name: RoomDataLabels.timestamp) final  DateTime timestamp;
+@override final  String id;
+@override@JsonKey() final  RoomType roomType;
+@override final  Player blackPlayer;
+@override final  Player whitePlayer;
+@override@JsonKey() final  int length;
+@override@JsonKey() final  int height;
+@override final  String playerIdTurn;
+@override@IListBoardConverter() final  IList<IList<int>> currentBoard;
+@override@IListMoveDataConverter() final  IList<MoveData> lastMoves;
+@override@JsonKey()@DurationSecondsConverter() final  Duration blackTotalDuration;
+@override@JsonKey()@DurationSecondsConverter() final  Duration whiteTotalDuration;
+@override final  DateTime timestamp;
 
 /// Create a copy of RoomData
 /// with the given fields replaced by the non-null parameter values.
@@ -281,7 +281,7 @@ abstract mixin class _$RoomDataCopyWith<$Res> implements $RoomDataCopyWith<$Res>
   factory _$RoomDataCopyWith(_RoomData value, $Res Function(_RoomData) _then) = __$RoomDataCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: RoomDataLabels.roomId) String id,@JsonKey(name: RoomDataLabels.roomType) RoomType roomType,@JsonKey(name: RoomDataLabels.blackPlayer) Player blackPlayer,@JsonKey(name: RoomDataLabels.whitePlayer) Player whitePlayer,@JsonKey(name: RoomDataLabels.length) int length,@JsonKey(name: RoomDataLabels.height) int height,@JsonKey(name: RoomDataLabels.playerIdTurn) String playerIdTurn,@JsonKey(name: RoomDataLabels.currentBoard)@IListBoardConverter() IList<IList<int>> currentBoard,@JsonKey(name: RoomDataLabels.lastMoves)@IListMoveDataConverter() IList<MoveData> lastMoves,@JsonKey(name: RoomDataLabels.blackTotalDuration)@DurationSecondsConverter() Duration blackTotalDuration,@JsonKey(name: RoomDataLabels.whiteTotalDuration)@DurationSecondsConverter() Duration whiteTotalDuration,@JsonKey(name: RoomDataLabels.timestamp) DateTime timestamp
+ String id, RoomType roomType, Player blackPlayer, Player whitePlayer, int length, int height, String playerIdTurn,@IListBoardConverter() IList<IList<int>> currentBoard,@IListMoveDataConverter() IList<MoveData> lastMoves,@DurationSecondsConverter() Duration blackTotalDuration,@DurationSecondsConverter() Duration whiteTotalDuration, DateTime timestamp
 });
 
 

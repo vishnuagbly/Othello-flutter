@@ -7,7 +7,7 @@ part of 'room_data.dart';
 // **************************************************************************
 
 _RoomData _$RoomDataFromJson(Map<String, dynamic> json) => _RoomData(
-  id: json['roomId'] as String,
+  id: json['id'] as String,
   roomType:
       $enumDecodeNullable(_$RoomTypeEnumMap, json['roomType']) ??
       RoomType.offlinePvP,
@@ -36,7 +36,7 @@ _RoomData _$RoomDataFromJson(Map<String, dynamic> json) => _RoomData(
 );
 
 Map<String, dynamic> _$RoomDataToJson(_RoomData instance) => <String, dynamic>{
-  'roomId': instance.id,
+  'id': instance.id,
   'roomType': _$RoomTypeEnumMap[instance.roomType]!,
   'blackPlayer': instance.blackPlayer,
   'whitePlayer': instance.whitePlayer,
