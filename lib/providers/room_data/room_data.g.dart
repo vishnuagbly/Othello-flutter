@@ -58,7 +58,7 @@ final class RoomDataProvider
   }
 }
 
-String _$roomDataHash() => r'e038a4a9ea86ec294ddfe94098615268af72a2e4';
+String _$roomDataHash() => r'3f7f25d9fddb56210b149d248583fb934adf8b40';
 
 final class RoomDataFamily extends $Family
     with

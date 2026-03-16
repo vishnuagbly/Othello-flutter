@@ -29,10 +29,20 @@ class RoomData extends _$RoomData {
 
   @override
   models.RoomData build(String id) {
-    final ds = ref.watch(roomDataDbProvider);
-    final room = ds[id];
-    if (room == null) throw StateError('RoomData not found for id: $id');
-    return room;
+    // Check existence with ref.read (non-reactive) first.
+    // If the room was deleted, return stale state WITHOUT calling ref.watch,
+    // so this keepAlive provider stops reacting to future DB changes and
+    // becomes inert (no ongoing rebuild cycles from DB mutations).
+    final ds = ref.read(roomDataDbProvider);
+    if (ds[id] == null) {
+      try {
+        return state;
+      } catch (_) {
+        throw StateError('RoomData not found for id: $id');
+      }
+    }
+    final watchedDs = ref.watch(roomDataDbProvider);
+    return watchedDs[id]!;
   }
 
   models.RoomData get _roomData => state;
@@ -190,14 +200,5 @@ class RoomData extends _$RoomData {
           pieceStates[nextMove[0]][nextMove[1]]!);
       }
     }
-  }
-
-  /// Deletes current room, creates a fresh one from it, returns the new room id.
-  /// Caller is responsible for navigation.
-  Future<String> resetGame() async {
-    final current = state;
-    await ref.read(roomDataDbProvider.notifier).deleteRoom(current.id);
-    final newRoom = models.RoomData.freshFrom(current);
-    return ref.read(roomDataDbProvider.notifier).createRoom(newRoom);
   }
 }

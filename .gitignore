@@ -49,3 +49,4 @@ app.*.map.json
 .netlify
 node_modules
 /macos/Podfile.lock
+.cursor/

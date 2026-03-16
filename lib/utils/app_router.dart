@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/screens/game_room.dart';
@@ -14,7 +15,7 @@ final goRouter = GoRouter(
       path: '/game_room/:id',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
-        return GameRoomGate(roomDataId: id);
+        return GameRoomGate(key: ValueKey(id), roomDataId: id);
       },
     ),
     GoRoute(

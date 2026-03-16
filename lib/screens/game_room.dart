@@ -142,9 +142,28 @@ class _GameRoomState extends ConsumerState<GameRoom>
   }
 
   Future<void> _resetGame() async {
-    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
-    final newId = await notifier.resetGame();
-    if (mounted) context.go('/game_room/$newId');
+    // Capture all refs and data before any async gap or navigation,
+    // so we never use ref after the widget might be disposed.
+    final oldId = widget.roomDataId;
+    final currentRoom = ref.read(roomDataProvider(oldId));
+    final dbNotifier = ref.read(roomDataDbProvider.notifier);
+
+    // Create new room first so the new route has valid data.
+    final newRoom = RoomData.freshFrom(currentRoom);
+    final newId = await dbNotifier.createRoom(newRoom);
+    if (!mounted) return;
+
+    // Delete old room from DB. roomDataProvider(oldId) will rebuild;
+    // build() returns stale state and self-detaches from DB (no ref.watch).
+    await dbNotifier.deleteRoom(oldId);
+    if (!mounted) return;
+
+    // Navigate last. We do NOT call ref.invalidate(roomDataProvider(oldId))
+    // because: (1) invalidate on keepAlive only triggers a rebuild, it does
+    // not dispose the provider; (2) build() self-detach already stopped the
+    // old provider from reacting to DB changes; (3) the old provider stays
+    // in memory inert (no subscriptions), which is acceptable.
+    context.go('/game_room/$newId');
   }
 
   @override
