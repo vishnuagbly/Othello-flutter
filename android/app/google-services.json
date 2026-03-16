@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "733014771219",
     "project_id": "othello-94686",
-    "storage_bucket": "othello-94686.appspot.com"
+    "storage_bucket": "othello-94686.firebasestorage.app"
   },
   "client": [
     {
@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "733014771219-jc7a8661b9tenisafac51s3mbc7p9jjj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vishnuworld.othello",
+            "certificate_hash": "7a1e13e92516238b3bab8a8296c7306134622b83"
+          }
+        },
+        {
           "client_id": "733014771219-ma8b44u89e7kmjpcfm1ioqf9c2qd1lds.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -35,6 +43,14 @@
           "android_info": {
             "package_name": "com.vishnuworld.othello",
             "certificate_hash": "df4e4a1f918118cb8ba2e3dae0d482b8928705bb"
+          }
+        },
+        {
+          "client_id": "733014771219-so7ar1tk6eu3rp2gn1vaohihu7b3ccpg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vishnuworld.othello",
+            "certificate_hash": "a5e122ce0fed4b47317812dd951d5e643e202fd6"
           }
         },
         {
