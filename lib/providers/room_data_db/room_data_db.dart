@@ -41,6 +41,8 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
     final room = state[id];
     if (room == null) return false;
     RoomData? next = _applyUndo(room);
+    /*TODO: check this, with this implementation currently, we can only undo,
+       after more than 2 moves. */
     while (next != null && !next.isManualTurn && next.lastMoves.length >= 2) {
       next = _applyUndo(next);
     }
@@ -158,7 +160,8 @@ bool roomExists(Ref ref, String id) {
 RoomData? _applyUndo(RoomData room) {
   if (room.lastMoves.length < 2) return null;
   final newLastMoves = room.lastMoves.removeLast();
-  final prevMove = newLastMoves.last;
+  final lastToLastMove = newLastMoves.last;
+  final prevMove = room.lastMoves.last;
   final durationToSubtract = prevMove.duration;
   final wasWhiteTurn = prevMove.playerIdTurn == room.whitePlayer.id;
   final newBlackDuration = wasWhiteTurn
@@ -169,10 +172,10 @@ RoomData? _applyUndo(RoomData room) {
       : room.whiteTotalDuration;
   return room.copyWith(
     lastMoves: newLastMoves,
-    currentBoard: prevMove.board,
+    currentBoard: lastToLastMove.board,
     playerIdTurn: prevMove.playerIdTurn,
     blackTotalDuration: newBlackDuration,
     whiteTotalDuration: newWhiteDuration,
-    timestamp: prevMove.timestamp,
+    timestamp: lastToLastMove.timestamp,
   );
 }
