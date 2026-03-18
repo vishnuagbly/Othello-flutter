@@ -6,6 +6,7 @@ import 'package:othello/components/custom_button.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/screens/game_room.dart';
+import 'package:othello/screens/login.dart';
 import 'package:othello/utils/globals.dart';
 
 class MainMenu extends ConsumerWidget {
@@ -62,6 +63,12 @@ class MainMenu extends ConsumerWidget {
                       white: false,
                     ),
                   ],
+                ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  text: "Online",
+                  onPressed: () => context.go(LoginScreen.kPath),
+                  width: Globals.maxScreenWidth * 0.34,
                 ),
               ],
             ),

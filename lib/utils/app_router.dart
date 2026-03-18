@@ -2,15 +2,13 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/screens/game_room.dart';
+import 'package:othello/screens/login.dart';
 import 'package:othello/screens/main_menu.dart';
 import 'package:othello/screens/room_list.dart';
 
 final goRouter = GoRouter(
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => MainMenu(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => MainMenu()),
     GoRoute(
       path: '/game_room/:id',
       builder: (context, state) {
@@ -26,5 +24,6 @@ final goRouter = GoRouter(
         return RoomListScreen(roomType: type);
       },
     ),
+    GoRoute(path: LoginScreen.kPath, builder: (context, state) => LoginScreen()),
   ],
 );
