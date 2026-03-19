@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import 'image_sequence_animator.dart';
 import 'package:othello/components/piece.dart';
 
+import 'image_sequence_animator.dart';
+
 class FlipPiece extends StatefulWidget {
-  FlipPiece(this.cellWidth, this.i, this.j,
-      {this.onCreation, required this.getPieceStateFn});
+  FlipPiece(
+    this.cellWidth,
+    this.i,
+    this.j, {
+    this.onCreation,
+    required this.getPieceStateFn,
+  });
 
   final double cellWidth;
   final int i;
@@ -41,11 +47,10 @@ class FlipPieceState extends State<FlipPiece> {
   Widget build(BuildContext context) {
     return Positioned(
       left: widget.cellWidth * widget.j,
-      top: widget.cellWidth * widget.i -
+      top:
+          widget.cellWidth * widget.i -
           (((widget.cellWidth * (90 / 74)) - widget.cellWidth) / 2),
-      child: IgnorePointer(
-        child: flipping ? _flipAnimation() : Container(),
-      ),
+      child: IgnorePointer(child: flipping ? _flipAnimation() : Container()),
     );
   }
 
@@ -80,8 +85,8 @@ class FlipPieceState extends State<FlipPiece> {
     );
   }
 
-  void _flipStateFn({operate = true}) {
-    if (operate) flipping = !flipping;
+  void _flipStateFn() {
+    flipping = !flipping;
     if (!mounted) return;
     setState(() {});
   }
