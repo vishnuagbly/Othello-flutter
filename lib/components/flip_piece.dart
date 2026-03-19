@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:othello/components/piece.dart';
+import 'package:othello/objects/flip_piece_state/flip_piece_state.dart'
+    as objects;
 
 import 'image_sequence_animator.dart';
 
@@ -23,8 +25,10 @@ class FlipPiece extends StatefulWidget {
 }
 
 class FlipPieceState extends State<FlipPiece> {
-  bool flipping = false;
+  objects.FlipPieceState flipPieceState = const objects.FlipPieceState();
   ImageSequenceAnimatorState? _state;
+
+  bool get flipping => flipPieceState.flipping;
 
   void flip() {
     _flipStateFn();
@@ -86,14 +90,14 @@ class FlipPieceState extends State<FlipPiece> {
   }
 
   void _flipStateFn() {
-    flipping = !flipping;
+    flipPieceState = flipPieceState.flip();
     if (!mounted) return;
     setState(() {});
   }
 
   void set() {
     if (!mounted) return;
-    flipping = false;
+    flipPieceState = flipPieceState.reset();
     setState(() {});
   }
 
