@@ -1,45 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:othello/components/piece.dart';
-import 'package:othello/objects/flip_piece_state/flip_piece_state.dart'
-    as objects;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:othello/providers/game_state/game_state.dart';
 
 import 'image_sequence_animator.dart';
 
-class FlipPiece extends StatefulWidget {
-  FlipPiece(
-    this.cellWidth,
-    this.i,
-    this.j, {
-    this.onCreation,
-    required this.getPieceStateFn,
-  });
+class FlipPiece extends ConsumerStatefulWidget {
+  FlipPiece(this.i, this.j, this.roomDataId);
 
-  final double cellWidth;
   final int i;
   final int j;
-  final void Function(FlipPieceState state)? onCreation;
-  final PieceState Function() getPieceStateFn;
+  final String roomDataId;
 
   @override
-  FlipPieceState createState() => FlipPieceState();
+  ConsumerState<FlipPiece> createState() => FlipPieceState();
 }
 
-class FlipPieceState extends State<FlipPiece> {
-  objects.FlipPieceState flipPieceState = const objects.FlipPieceState();
+class FlipPieceState extends ConsumerState<FlipPiece> {
   ImageSequenceAnimatorState? _state;
-
-  bool get flipping => flipPieceState.flipping;
-
-  void flip() {
-    _flipStateFn();
-    _pieceState.stateFn();
-  }
-
-  @override
-  void initState() {
-    (widget.onCreation ?? (_) {})(this);
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -49,30 +26,54 @@ class FlipPieceState extends State<FlipPiece> {
 
   @override
   Widget build(BuildContext context) {
+    final cellWidth = ref.read(
+      gameStateProvider(widget.roomDataId).select((s) => s.cellWidth),
+    );
+    final flipPieceState = ref.watch(
+      gameStateProvider(
+        widget.roomDataId,
+      ).select((s) => s.flipPieceStates[widget.i][widget.j]),
+    );
+    final pieceValue = ref.read(
+      gameStateProvider(
+        widget.roomDataId,
+      ).select((s) => s.pieceStates[widget.i][widget.j].value),
+    );
+    final boardValue = ref.read(
+      gameStateProvider(
+        widget.roomDataId,
+      ).select((s) => s.pieceStates[widget.i][widget.j].boardValue),
+    );
+
+    final bool flipping = flipPieceState.flipping;
+
     return Positioned(
-      left: widget.cellWidth * widget.j,
-      top:
-          widget.cellWidth * widget.i -
-          (((widget.cellWidth * (90 / 74)) - widget.cellWidth) / 2),
-      child: IgnorePointer(child: flipping ? _flipAnimation() : Container()),
+      left: cellWidth * widget.j,
+      top: cellWidth * widget.i - (((cellWidth * (90 / 74)) - cellWidth) / 2),
+      child: IgnorePointer(
+        child: flipping
+            ? _flipAnimation(cellWidth, pieceValue, boardValue)
+            : Container(),
+      ),
     );
   }
 
-  Widget _flipAnimation() {
+  Widget _flipAnimation(double cellWidth, int pieceValue, int boardValue) {
     final _onFinishPlaying = (ImageSequenceAnimatorState state) {
-      if (_pieceState.value % 2 == 0) return;
+      if (pieceValue % 2 == 0) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _flipStateFn();
-        _pieceState.stateFn();
+        ref
+            .read(gameStateProvider(widget.roomDataId).notifier)
+            .set(widget.i, widget.j);
       });
     };
     return Container(
-      width: widget.cellWidth,
-      height: widget.cellWidth * (90 / 74),
+      width: cellWidth,
+      height: cellWidth * (90 / 74),
       child: FittedBox(
         child: InkWell(
           child: ImageSequenceAnimator(
-            _pieceState.boardValue == 1 ? "assets/flip_0" : 'assets/flip_1',
+            boardValue == 1 ? "assets/flip_0" : 'assets/flip_1',
             "frame_",
             0,
             1,
@@ -88,18 +89,4 @@ class FlipPieceState extends State<FlipPiece> {
       ),
     );
   }
-
-  void _flipStateFn() {
-    flipPieceState = flipPieceState.flip();
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  void set() {
-    if (!mounted) return;
-    flipPieceState = flipPieceState.reset();
-    setState(() {});
-  }
-
-  PieceState get _pieceState => widget.getPieceStateFn();
 }

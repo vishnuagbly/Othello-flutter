@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'room_data.dart';
+part of 'game_state.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,47 +9,47 @@ part of 'room_data.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(RoomData)
-final roomDataProvider = RoomDataFamily._();
+@ProviderFor(GameState)
+final gameStateProvider = GameStateFamily._();
 
-final class RoomDataProvider
-    extends $NotifierProvider<RoomData, models.RoomData> {
-  RoomDataProvider._({
-    required RoomDataFamily super.from,
+final class GameStateProvider
+    extends $NotifierProvider<GameState, gso.GameState> {
+  GameStateProvider._({
+    required GameStateFamily super.from,
     required String super.argument,
   }) : super(
          retry: null,
-         name: r'roomDataProvider',
+         name: r'gameStateProvider',
          isAutoDispose: false,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
 
   @override
-  String debugGetCreateSourceHash() => _$roomDataHash();
+  String debugGetCreateSourceHash() => _$gameStateHash();
 
   @override
   String toString() {
-    return r'roomDataProvider'
+    return r'gameStateProvider'
         ''
         '($argument)';
   }
 
   @$internal
   @override
-  RoomData create() => RoomData();
+  GameState create() => GameState();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(models.RoomData value) {
+  Override overrideWithValue(gso.GameState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<models.RoomData>(value),
+      providerOverride: $SyncValueProvider<gso.GameState>(value),
     );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is RoomDataProvider && other.argument == argument;
+    return other is GameStateProvider && other.argument == argument;
   }
 
   @override
@@ -58,47 +58,47 @@ final class RoomDataProvider
   }
 }
 
-String _$roomDataHash() => r'3f7f25d9fddb56210b149d248583fb934adf8b40';
+String _$gameStateHash() => r'f1fe666d51b2a87ae70482a5414498443883dfff';
 
-final class RoomDataFamily extends $Family
+final class GameStateFamily extends $Family
     with
         $ClassFamilyOverride<
-          RoomData,
-          models.RoomData,
-          models.RoomData,
-          models.RoomData,
+          GameState,
+          gso.GameState,
+          gso.GameState,
+          gso.GameState,
           String
         > {
-  RoomDataFamily._()
+  GameStateFamily._()
     : super(
         retry: null,
-        name: r'roomDataProvider',
+        name: r'gameStateProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: false,
       );
 
-  RoomDataProvider call(String id) =>
-      RoomDataProvider._(argument: id, from: this);
+  GameStateProvider call(String id) =>
+      GameStateProvider._(argument: id, from: this);
 
   @override
-  String toString() => r'roomDataProvider';
+  String toString() => r'gameStateProvider';
 }
 
-abstract class _$RoomData extends $Notifier<models.RoomData> {
+abstract class _$GameState extends $Notifier<gso.GameState> {
   late final _$args = ref.$arg as String;
   String get id => _$args;
 
-  models.RoomData build(String id);
+  gso.GameState build(String id);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<models.RoomData, models.RoomData>;
+    final ref = this.ref as $Ref<gso.GameState, gso.GameState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<models.RoomData, models.RoomData>,
-              models.RoomData,
+              AnyNotifier<gso.GameState, gso.GameState>,
+              gso.GameState,
               Object?,
               Object?
             >;

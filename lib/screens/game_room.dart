@@ -10,7 +10,7 @@ import 'package:othello/components/common_alert_dialog.dart';
 import 'package:othello/components/flip_piece.dart';
 import 'package:othello/components/piece.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:othello/providers/room_data/room_data.dart' hide RoomData;
+import 'package:othello/providers/game_state/game_state.dart' hide GameState;
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/widgets/room_data_scope.dart';
 
@@ -72,17 +72,26 @@ class GameRoom extends ConsumerStatefulWidget {
 class _GameRoomState extends ConsumerState<GameRoom>
     with SingleTickerProviderStateMixin {
   late List<Widget> mainStack;
-  bool _gameStateInitialized = false;
+  bool _initialized = false;
 
-  void _createGameState() {
-    if (_gameStateInitialized) return;
-    _gameStateInitialized = true;
-    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
-    notifier.initGameState(
-      onEndGame: _showEndGameDialog,
-      autoReset: widget.onlyBoard,
-    );
-    _initStack();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref
+            .read(gameStateProvider(widget.roomDataId).notifier)
+            .initGameState(
+              onEndGame: _showEndGameDialog,
+              autoReset: widget.onlyBoard,
+            );
+        _initStack();
+        /* Not doing setState because, already watching gameState in build */
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => setState(() => _initialized = true),
+        );
+      }
+    });
   }
 
   void _showEndGameDialog(int status) {
@@ -95,39 +104,33 @@ class _GameRoomState extends ConsumerState<GameRoom>
   }
 
   void _initStack() {
-    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
+    final notifier = ref.read(gameStateProvider(widget.roomDataId).notifier);
+    final boardLength = ref
+        .read(gameStateProvider(widget.roomDataId))
+        .roomData
+        .length;
+    final boardHeight = ref
+        .read(gameStateProvider(widget.roomDataId))
+        .roomData
+        .height;
+
     mainStack = [
       Column(
         children: List.generate(
-          notifier.boardHeight,
+          boardHeight,
           (i) => Row(
             children: List.generate(
-              notifier.boardLength,
-              (j) => Piece(
-                notifier.cellWidth,
-                initValue: notifier.board[i][j],
-                onCreation: (state) => notifier.pieceStates[i][j] = state,
-                onTap: notifier.onTapOnPiece(i, j),
-                isWhiteTurn: () =>
-                    ref.read(roomDataProvider(widget.roomDataId)).isWhiteTurn,
-              ),
+              boardLength,
+              (j) => Piece(i, j, widget.roomDataId),
             ),
           ),
         ),
       ),
     ];
 
-    for (int i = 0; i < notifier.boardHeight; i++) {
-      for (int j = 0; j < notifier.boardLength; j++) {
-        mainStack.add(
-          FlipPiece(
-            notifier.cellWidth,
-            i,
-            j,
-            onCreation: (state) => notifier.flipPieceStates[i][j] = state,
-            getPieceStateFn: () => notifier.pieceStates[i][j]!,
-          ),
-        );
+    for (int i = 0; i < boardHeight; i++) {
+      for (int j = 0; j < boardLength; j++) {
+        mainStack.add(FlipPiece(i, j, widget.roomDataId));
       }
     }
 
@@ -140,20 +143,20 @@ class _GameRoomState extends ConsumerState<GameRoom>
     // Capture all refs and data before any async gap or navigation,
     // so we never use ref after the widget might be disposed.
     final oldId = widget.roomDataId;
-    final currentRoom = ref.read(roomDataProvider(oldId));
+    final gameState = ref.read(gameStateProvider(oldId));
     final dbNotifier = ref.read(roomDataDbProvider.notifier);
 
     // Create new room first so the new route has valid data.
-    final newRoom = RoomData.freshFrom(currentRoom);
+    final newRoom = RoomData.freshFrom(gameState.roomData);
     final newId = await dbNotifier.createRoom(newRoom);
     if (!mounted) return;
 
-    // Delete old room from DB. roomDataProvider(oldId) will rebuild;
+    // Delete old room from DB. gameStateProvider(oldId) will rebuild;
     // build() returns stale state and self-detaches from DB (no ref.watch).
     await dbNotifier.deleteRoom(oldId);
     if (!mounted) return;
 
-    // Navigate last. We do NOT call ref.invalidate(roomDataProvider(oldId))
+    // Navigate last. We do NOT call ref.invalidate(gameStateProvider(oldId))
     // because: (1) invalidate on keepAlive only triggers a rebuild, it does
     // not dispose the provider; (2) build() self-detach already stopped the
     // old provider from reacting to DB changes; (3) the old provider stays
@@ -163,16 +166,39 @@ class _GameRoomState extends ConsumerState<GameRoom>
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(roomDataProvider(widget.roomDataId));
-    _createGameState();
+    if (!_initialized) {
+      return Container(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Center(
+            child: SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ),
+      );
+    }
 
-    final notifier = ref.read(roomDataProvider(widget.roomDataId).notifier);
+    ref.watch(gameStateProvider(widget.roomDataId));
+    final cellWidth = ref.read(
+      gameStateProvider(widget.roomDataId).select((s) => s.cellWidth),
+    );
+    final roomDataLength = ref.read(
+      gameStateProvider(widget.roomDataId).select((s) => s.roomData.length),
+    );
+    final roomDataHeight = ref.read(
+      gameStateProvider(widget.roomDataId).select((s) => s.roomData.height),
+    );
+    final notifier = ref.read(gameStateProvider(widget.roomDataId).notifier);
+
     final board = Container(
       color: Colors.grey[850],
       padding: const EdgeInsets.all(10),
       child: Container(
-        width: notifier.cellWidth * notifier.boardLength,
-        height: notifier.cellWidth * notifier.boardHeight,
+        width: cellWidth * roomDataLength,
+        height: cellWidth * roomDataHeight,
         color: Colors.green[600],
         child: Stack(children: mainStack),
       ),
@@ -232,7 +258,11 @@ class ScoreBoard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomDataId = RoomDataScope.of(context);
-    final room = ref.watch(roomDataProvider(roomDataId));
+    final totalPieces = ref.watch(
+      gameStateProvider(
+        roomDataId,
+      ).select((s) => s.roomData.totalPieces(forWhite: forWhite)),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -261,7 +291,7 @@ class ScoreBoard extends ConsumerWidget {
                     ),
                     Icon(Icons.close_rounded),
                     Text(
-                      room.totalPieces(forWhite: forWhite).toString(),
+                      totalPieces.toString(),
                       style: TextStyle(
                         fontSize: height * 0.8,
                         fontWeight: FontWeight.w500,
@@ -298,9 +328,15 @@ class _ChanceTimerState extends ConsumerState<ChanceTimer> {
   Timer? _timer;
   bool _initialized = false;
 
-  void _updateFromRoom(RoomData room) {
-    final duration = room.getTotalDuration(widget.forWhite);
-    final isActive = (room.isWhiteTurn == widget.forWhite) && !room.isGameEnded;
+  Duration _getTotalDuration(RoomData room) {
+    return room.getTotalDuration(widget.forWhite);
+  }
+
+  bool _getIsActive(RoomData room) {
+    return (room.isWhiteTurn == widget.forWhite) && !room.isGameEnded;
+  }
+
+  void _updateTimer(Duration duration, bool isActive) {
     if (isActive) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _continueTimer());
     } else {
@@ -341,16 +377,25 @@ class _ChanceTimerState extends ConsumerState<ChanceTimer> {
   @override
   Widget build(BuildContext context) {
     final roomDataId = RoomDataScope.of(context);
-    final room = ref.watch(roomDataProvider(roomDataId));
+    final timerData = ref.watch(
+      gameStateProvider(roomDataId).select(
+        (s) => (_getTotalDuration(s.roomData), _getIsActive(s.roomData)),
+      ),
+    );
 
-    ref.listen(roomDataProvider(roomDataId), (prev, next) {
-      _updateFromRoom(next);
-    });
+    ref.listen(
+      gameStateProvider(roomDataId).select(
+        (s) => (_getTotalDuration(s.roomData), _getIsActive(s.roomData)),
+      ),
+      (prev, next) {
+        _updateTimer(next.$1, next.$2);
+      },
+    );
 
     if (!_initialized) {
       _initialized = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateFromRoom(room);
+        _updateTimer(timerData.$1, timerData.$2);
       });
     }
 
