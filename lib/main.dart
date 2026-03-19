@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -7,10 +8,9 @@ import 'package:othello/utils/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   await Hive.initFlutter();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(Phoenix(child: ProviderScope(child: MyApp())));
 }
 
@@ -23,10 +23,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.brown,
         scaffoldBackgroundColor: Colors.black,
-        floatingActionButtonTheme:
-            ThemeData.dark().floatingActionButtonTheme.copyWith(
-                  backgroundColor: Colors.brown,
-                ),
+        floatingActionButtonTheme: ThemeData.dark().floatingActionButtonTheme
+            .copyWith(backgroundColor: Colors.brown),
       ),
       routerConfig: goRouter,
     );

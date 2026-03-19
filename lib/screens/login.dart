@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart';
 import 'package:googleapis/people/v1.dart' as people;
+import 'package:othello/providers/user/users.dart';
 
 import '../secrets.dart';
 
-class LoginScreen extends StatefulWidget {
-  static const kPath = '/login';
-
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     params: const GoogleSignInParams(
       clientId: kGoogleClientId,
@@ -22,6 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
       scopes: ['openid', 'profile', 'email'],
     ),
   );
+
+  bool _fetchingPerson = false;
 
   @override
   void initState() {
@@ -35,7 +37,24 @@ class _LoginScreenState extends State<LoginScreen> {
     recommended flow, for refreshing the token.
     */
     _googleSignIn.silentSignIn();
+    _googleSignIn.authenticationState.listen(_signInListener);
     super.initState();
+  }
+
+  Future<void> _signInListener(GoogleSignInCredentials? creds) async {
+    if (creds == null || !mounted) return;
+    if (ref.read(isLoggedInProvider)) return;
+
+    setState(() => _fetchingPerson = true);
+    try {
+      final person = await _fetchPerson();
+      if (mounted) await ref.read(usersProvider.notifier).login(person);
+      debugPrint('Fetched person: ${person.names?.firstOrNull?.displayName}');
+    } catch (e) {
+      debugPrint('Error fetching person: $e');
+    } finally {
+      if (mounted) setState(() => _fetchingPerson = false);
+    }
   }
 
   @override
@@ -54,7 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // A simple custom card widget to display the user profile.
-                  if (isSignedIn)
+                  if (_fetchingPerson)
+                    const CircularProgressIndicator()
+                  else if (isSignedIn)
                     const Text('Signed In')
                   else
                     const Text('Not Signed In'),

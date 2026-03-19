@@ -6,7 +6,7 @@ import 'package:othello/components/custom_button.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/screens/game_room.dart';
-import 'package:othello/screens/login.dart';
+import 'package:othello/screens/online.dart';
 import 'package:othello/utils/globals.dart';
 
 class MainMenu extends ConsumerWidget {
@@ -42,9 +42,7 @@ class MainMenu extends ConsumerWidget {
                   constraints: BoxConstraints(
                     maxHeight: Globals.screenHeight * 0.5,
                   ),
-                  child: FittedBox(
-                    child: _PreviewCvC(),
-                  ),
+                  child: FittedBox(child: _PreviewCvC()),
                 ),
                 SizedBox(height: 40),
                 Row(
@@ -52,13 +50,15 @@ class MainMenu extends ConsumerWidget {
                   children: [
                     CustomButton(
                       text: "vs Computer",
-                      onPressed: () => _onPlayPressed(context, ref, RoomType.offlinePvC),
+                      onPressed: () =>
+                          _onPlayPressed(context, ref, RoomType.offlinePvC),
                       width: Globals.maxScreenWidth * 0.34,
                     ),
                     SizedBox(width: Globals.maxScreenWidth * 0.06),
                     CustomButton(
                       text: "Pass N Play",
-                      onPressed: () => _onPlayPressed(context, ref, RoomType.offlinePvP),
+                      onPressed: () =>
+                          _onPlayPressed(context, ref, RoomType.offlinePvP),
                       width: Globals.maxScreenWidth * 0.34,
                       white: false,
                     ),
@@ -67,7 +67,7 @@ class MainMenu extends ConsumerWidget {
                 const SizedBox(height: 20),
                 CustomButton(
                   text: "Online",
-                  onPressed: () => context.go(LoginScreen.kPath),
+                  onPressed: () => context.push(OnlineScreen.kPath),
                   width: Globals.maxScreenWidth * 0.34,
                 ),
               ],
@@ -78,7 +78,11 @@ class MainMenu extends ConsumerWidget {
     );
   }
 
-  Future<void> _onPlayPressed(BuildContext context, WidgetRef ref, RoomType type) async {
+  Future<void> _onPlayPressed(
+    BuildContext context,
+    WidgetRef ref,
+    RoomType type,
+  ) async {
     await ref.read(roomDataDbProvider.notifier).waitForInitialization;
     final rooms = ref.read(roomsByTypeProvider(type));
 
@@ -132,9 +136,6 @@ class _PreviewCvCState extends ConsumerState<_PreviewCvC> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    return GameRoom(
-      roomDataId: _previewRoomId!,
-      onlyBoard: true,
-    );
+    return GameRoom(roomDataId: _previewRoomId!, onlyBoard: true);
   }
 }
