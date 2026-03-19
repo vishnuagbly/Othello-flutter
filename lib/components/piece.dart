@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:othello/objects/piece_state/piece_state.dart' as objects;
 
 class Piece extends StatefulWidget {
   Piece(
@@ -20,21 +21,18 @@ class Piece extends StatefulWidget {
 }
 
 class PieceState extends State<Piece> {
-  PieceState(int value) : _value = _valueFromBoardValue(value);
+  PieceState(int value)
+    : pieceState = objects.PieceState.fromBoardvalue(boardValue: value);
 
-  int _value;
-  bool possibleMove = false;
+  objects.PieceState pieceState;
 
-  static int _valueFromBoardValue(int boardValue) =>
-      boardValue == 1 ? 2 : boardValue;
+  int get boardValue => pieceState.boardValue;
+  int get value => pieceState.value;
+  bool get possibleMove => pieceState.possibleMove;
 
-  int get boardValue {
-    if (_value == 0 || _value == 3) return 0;
-    if (_value == 1 || _value == 2) return 1;
-    return -1;
+  set possibleMove(bool val) {
+    pieceState = pieceState.copyWith(possibleMove: val);
   }
-
-  int get value => _value;
 
   @override
   void initState() {
@@ -45,14 +43,15 @@ class PieceState extends State<Piece> {
   void stateFn({bool operate = true}) {
     if (!mounted) return;
     setState(() {
-      if (operate) _value = (_value + 1) % 4;
+      if (operate)
+        pieceState = pieceState.copyWith(value: (pieceState.value + 1) % 4);
     });
   }
 
   void set(int boardValue) {
     if (!mounted) return;
     setState(() {
-      _value = _valueFromBoardValue(boardValue);
+      pieceState = pieceState.updateFromBoardValue(boardValue);
     });
   }
 
@@ -73,12 +72,12 @@ class PieceState extends State<Piece> {
         ),
       );
     }
-    if (_value == 0)
+    if (value == 0)
       child = FittedBox(
         fit: BoxFit.cover,
         child: Image.asset("assets/flip_0/frame_0.png"),
       );
-    else if (_value == 2)
+    else if (value == 2)
       child = FittedBox(
         fit: BoxFit.cover,
         child: Image.asset("assets/flip_0/frame_18.png"),
@@ -90,14 +89,11 @@ class PieceState extends State<Piece> {
       color: Colors.black,
       child: InkWell(
         onTap: () {
-          if (_value == -1 && possibleMove && widget.onTap != null) {
+          if (value == -1 && possibleMove && widget.onTap != null) {
             widget.onTap!(this);
           }
         },
-        child: Container(
-          color: Colors.green[600],
-          child: child,
-        ),
+        child: Container(color: Colors.green[600], child: child),
       ),
     );
   }
