@@ -19,7 +19,7 @@ class Piece extends ConsumerWidget {
     final pieceState = ref.watch(
       gameStateProvider(roomDataId).select((s) => s.pieceStates[i][j]),
     );
-    final isWhiteTurn = ref.read(
+    final isWhiteTurn = ref.watch(
       gameStateProvider(roomDataId).select((s) => s.roomData.isWhiteTurn),
     );
 
