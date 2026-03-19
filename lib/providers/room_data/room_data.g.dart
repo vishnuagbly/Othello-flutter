@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'room_data_db.dart';
+part of 'room_data.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,55 +9,99 @@ part of 'room_data_db.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(RoomDataDb)
-final roomDataDbProvider = RoomDataDbProvider._();
+@ProviderFor(RoomData)
+final roomDataProvider = RoomDataFamily._();
 
-final class RoomDataDbProvider
-    extends $NotifierProvider<RoomDataDb, Dataset<RoomData>> {
-  RoomDataDbProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'roomDataDbProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+final class RoomDataProvider extends $NotifierProvider<RoomData, o.RoomData> {
+  RoomDataProvider._({
+    required RoomDataFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'roomDataProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  String debugGetCreateSourceHash() => _$roomDataDbHash();
+  String debugGetCreateSourceHash() => _$roomDataHash();
+
+  @override
+  String toString() {
+    return r'roomDataProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
-  RoomDataDb create() => RoomDataDb();
+  RoomData create() => RoomData();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Dataset<RoomData> value) {
+  Override overrideWithValue(o.RoomData value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<Dataset<RoomData>>(value),
+      providerOverride: $SyncValueProvider<o.RoomData>(value),
     );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RoomDataProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
-String _$roomDataDbHash() => r'82e49ab36fb40708119b327f3f922a2f7b2dd374';
+String _$roomDataHash() => r'c2840d15b4384070ca4c83d79e54de0251dc1682';
 
-abstract class _$RoomDataDb extends $Notifier<Dataset<RoomData>> {
-  Dataset<RoomData> build();
+final class RoomDataFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          RoomData,
+          o.RoomData,
+          o.RoomData,
+          o.RoomData,
+          String
+        > {
+  RoomDataFamily._()
+    : super(
+        retry: null,
+        name: r'roomDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RoomDataProvider call(String id) =>
+      RoomDataProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'roomDataProvider';
+}
+
+abstract class _$RoomData extends $Notifier<o.RoomData> {
+  late final _$args = ref.$arg as String;
+  String get id => _$args;
+
+  o.RoomData build(String id);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<Dataset<RoomData>, Dataset<RoomData>>;
+    final ref = this.ref as $Ref<o.RoomData, o.RoomData>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<Dataset<RoomData>, Dataset<RoomData>>,
-              Dataset<RoomData>,
+              AnyNotifier<o.RoomData, o.RoomData>,
+              o.RoomData,
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -65,11 +109,16 @@ abstract class _$RoomDataDb extends $Notifier<Dataset<RoomData>> {
 final roomsByTypeProvider = RoomsByTypeFamily._();
 
 final class RoomsByTypeProvider
-    extends $FunctionalProvider<List<RoomData>, List<RoomData>, List<RoomData>>
-    with $Provider<List<RoomData>> {
+    extends
+        $FunctionalProvider<
+          List<o.RoomData>,
+          List<o.RoomData>,
+          List<o.RoomData>
+        >
+    with $Provider<List<o.RoomData>> {
   RoomsByTypeProvider._({
     required RoomsByTypeFamily super.from,
-    required RoomType super.argument,
+    required o.RoomType super.argument,
   }) : super(
          retry: null,
          name: r'roomsByTypeProvider',
@@ -90,20 +139,20 @@ final class RoomsByTypeProvider
 
   @$internal
   @override
-  $ProviderElement<List<RoomData>> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<List<o.RoomData>> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  List<RoomData> create(Ref ref) {
-    final argument = this.argument as RoomType;
+  List<o.RoomData> create(Ref ref) {
+    final argument = this.argument as o.RoomType;
     return roomsByType(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<RoomData> value) {
+  Override overrideWithValue(List<o.RoomData> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<RoomData>>(value),
+      providerOverride: $SyncValueProvider<List<o.RoomData>>(value),
     );
   }
 
@@ -118,10 +167,10 @@ final class RoomsByTypeProvider
   }
 }
 
-String _$roomsByTypeHash() => r'87a81fc02beca3a0d1e45000b9acd6df2edbbae3';
+String _$roomsByTypeHash() => r'74cef2fc29eeade8f900571344e12bc6632e5504';
 
 final class RoomsByTypeFamily extends $Family
-    with $FunctionalFamilyOverride<List<RoomData>, RoomType> {
+    with $FunctionalFamilyOverride<List<o.RoomData>, o.RoomType> {
   RoomsByTypeFamily._()
     : super(
         retry: null,
@@ -131,7 +180,7 @@ final class RoomsByTypeFamily extends $Family
         isAutoDispose: true,
       );
 
-  RoomsByTypeProvider call(RoomType type) =>
+  RoomsByTypeProvider call(o.RoomType type) =>
       RoomsByTypeProvider._(argument: type, from: this);
 
   @override

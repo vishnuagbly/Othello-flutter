@@ -8,6 +8,7 @@ import 'package:othello/objects/flip_piece_state/flip_piece_state.dart';
 import 'package:othello/objects/game_state/game_state.dart' as gso;
 import 'package:othello/objects/piece_state/piece_state.dart';
 import 'package:othello/objects/room_data/room_data.dart';
+import 'package:othello/providers/room_data/room_data.dart' as rp;
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/utils/globals.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,17 +26,15 @@ class GameState extends _$GameState {
     // If the room was deleted, return stale state WITHOUT calling ref.watch,
     // so this keepAlive provider stops reacting to future DB changes and
     // becomes inert (no ongoing rebuild cycles from DB mutations).
-    final ds = ref.read(roomDataDbProvider);
-    var room = ds[id];
-    if (room == null) {
+    final roomExists = ref.read(roomExistsProvider(id));
+    if (!roomExists) {
       try {
         return state;
       } catch (_) {
         throw StateError('RoomData not found for id: $id');
       }
     }
-    final watchedDs = ref.watch(roomDataDbProvider);
-    room = watchedDs[id]!;
+    final room = ref.watch(rp.roomDataProvider(id));
 
     // Auto-update room data but preserve the UI state if already initialized
     try {
@@ -55,6 +54,8 @@ class GameState extends _$GameState {
   IList<IList<int>> get board => _roomData.currentBoard;
 
   double get cellWidth => state.cellWidth;
+
+  rp.RoomData get _roomNotifier => ref.read(rp.roomDataProvider(id).notifier);
 
   /// Call once from the widget after the provider is created to set callbacks
   /// and initialize layout/UI state.
@@ -108,8 +109,7 @@ class GameState extends _$GameState {
 
   void undo({bool debug = false}) async {
     if (debug) print("performing undo");
-    final dbNotifier = ref.read(roomDataDbProvider.notifier);
-    final didUndo = await dbNotifier.undo(id);
+    final didUndo = await _roomNotifier.undo();
     if (!didUndo) return;
     if (!_flipping) _syncEachPiece(false, debug);
 
@@ -135,8 +135,7 @@ class GameState extends _$GameState {
     );
     state = state.copyWith(pieceStates: currentPStates.deepLock);
 
-    final dbNotifier = ref.read(roomDataDbProvider.notifier);
-    final piecesToFlip = await dbNotifier.makeMove(id, i, j);
+    final piecesToFlip = await _roomNotifier.makeMove(i, j);
     if (piecesToFlip != null) await _startFlipAnimation(piecesToFlip, debug);
   };
 
@@ -151,7 +150,7 @@ class GameState extends _$GameState {
   void _endGame() async {
     final room = _roomData;
     if (state.autoReset) {
-      await ref.read(roomDataDbProvider.notifier).resetBoard(id);
+      await _roomNotifier.resetBoard();
       await Future.delayed(const Duration(seconds: 2));
       _markPossibleMovesOrEndGame();
       _syncEachPiece(false, false);
