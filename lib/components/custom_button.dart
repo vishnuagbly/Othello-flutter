@@ -10,12 +10,16 @@ class CustomButton extends StatefulWidget {
     required this.onPressed,
     this.width,
     this.white = true,
+    this.foregroundColor = Colors.white,
+    this.backgroundColor = Colors.green,
   });
 
   final String text;
   final void Function() onPressed;
   final bool white;
   final double? width;
+  final Color foregroundColor;
+  final Color backgroundColor;
 
   @override
   _CustomButtonState createState() => _CustomButtonState();
@@ -40,8 +44,8 @@ class _CustomButtonState extends State<CustomButton> {
           child: ElevatedButton(
             key: _key,
             style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.green,
+                foregroundColor: widget.foregroundColor,
+                backgroundColor: widget.backgroundColor,
                 padding: EdgeInsets.zero,
                 textStyle: GoogleFonts.montserrat(
                   fontSize: Globals.maxScreenWidth * 0.04,

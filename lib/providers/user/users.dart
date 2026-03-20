@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/people/v1.dart' as people;
 import 'package:othello/objects/user/user.dart';
+import 'package:othello/utils/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synckit/synckit.dart';
 
@@ -50,7 +51,9 @@ class Users extends _$Users with SyncedState<User> {
     return update(newUser);
   }
 
-  Future<void> logout(String email) => clear();
+  Future<void> logout() async {
+    await Future.wait([clear(), kGoogleSignIn.signOut()]);
+  }
 }
 
 @riverpod
