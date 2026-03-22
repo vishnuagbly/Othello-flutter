@@ -19,10 +19,7 @@ class RoomListScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: Text(
-          _titleForType(roomType),
-          style: GoogleFonts.montserrat(),
-        ),
+        title: Text(_titleForType(roomType), style: GoogleFonts.montserrat()),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -39,8 +36,10 @@ class RoomListScreen extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 12),
             color: Colors.grey[900],
             child: ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               leading: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -111,6 +110,8 @@ class RoomListScreen extends ConsumerWidget {
         return 'vs Computer';
       case RoomType.offlineCvC:
         return 'Computer vs Computer';
+      case RoomType.onlinePvP:
+        return 'Online Rooms';
     }
   }
 
@@ -122,6 +123,8 @@ class RoomListScreen extends ConsumerWidget {
         return RoomData.offlinePvC();
       case RoomType.offlineCvC:
         return RoomData.offlineCvC();
+      case RoomType.onlinePvP:
+        throw UnimplementedError();
     }
   }
 }

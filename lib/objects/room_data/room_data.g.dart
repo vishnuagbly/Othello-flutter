@@ -58,4 +58,5 @@ const _$RoomTypeEnumMap = {
   RoomType.offlinePvP: 'offlinePvP',
   RoomType.offlinePvC: 'offlinePvC',
   RoomType.offlineCvC: 'offlineCvC',
+  RoomType.onlinePvP: 'onlinePvP',
 };

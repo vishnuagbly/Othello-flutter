@@ -30,7 +30,7 @@ IList<IList<int>> fromFlatList(List<int> flat, int width) {
   return res.lock;
 }
 
-enum RoomType { offlinePvP, offlinePvC, offlineCvC }
+enum RoomType { offlinePvP, offlinePvC, offlineCvC, onlinePvP }
 
 class IListMoveDataConverter
     implements JsonConverter<IList<MoveData>, List<dynamic>?> {

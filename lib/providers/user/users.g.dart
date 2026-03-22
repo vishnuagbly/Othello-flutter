@@ -40,7 +40,7 @@ final class UsersProvider extends $NotifierProvider<Users, Dataset<User>> {
   }
 }
 
-String _$usersHash() => r'3ccdf84be9414934028bbf6a161dc753290fbb81';
+String _$usersHash() => r'b006f7d2e7b66133a12b5c674e700cb6ee29a252';
 
 abstract class _$Users extends $Notifier<Dataset<User>> {
   Dataset<User> build();
