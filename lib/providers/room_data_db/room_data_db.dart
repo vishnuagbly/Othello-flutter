@@ -1,4 +1,10 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:othello/objects/room_data/room_data.dart';
+import 'package:othello/objects/player/player.dart';
+import 'package:othello/providers/user/users.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synckit/synckit.dart';
 
@@ -6,8 +12,22 @@ part 'room_data_db.g.dart';
 
 @Riverpod(keepAlive: true)
 class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
+  String? _listeningForUserId;
+
   @override
   Dataset<RoomData> build() {
+    ref.listen<bool>(isLoggedInProvider, (prev, isLoggedIn) async {
+      if (isLoggedIn) {
+        final user = ref.read(currentUserProvider);
+        await _startOnlineListening(user.id);
+      } else {
+        await _stopOnlineListening();
+      }
+    });
+    ref.onDispose(() {
+      unawaited(dispose());
+    });
+
     return initialize(
       SyncConfig(
         manager: SyncManager<RoomData>(
@@ -17,10 +37,45 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
             toJson: (r) => r.toJson(),
           ),
           storage: const LocalStorage('rooms'),
-          network: NetworkStorage.disabled(),
+          network: NetworkStorage(
+            'online_rooms',
+            collectionBased: true,
+            collectionBasedConfig: const NetworkStorageCollectionBasedConfig(
+              getAllEnabled: false,
+              maxGetAllDocs: 10,
+            ),
+            writeRules: (data) => IMap.fromEntries(
+              data.entries.where(
+                (e) => e.value.roomType == RoomType.onlinePvP,
+              ),
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _startOnlineListening(String userId) async {
+    if (_listeningForUserId == userId) return;
+    if (_listeningForUserId != null) {
+      await _stopOnlineListening();
+    }
+    _listeningForUserId = userId;
+    keepQueryInSync(
+      (query) => query.where(
+        Filter.or(
+          Filter('blackPlayer.playerId', isEqualTo: userId),
+          Filter('whitePlayer.playerId', isEqualTo: userId),
+        ),
+      ),
+      maxGetAllDocs: 10,
+    );
+  }
+
+  Future<void> _stopOnlineListening() async {
+    if (_listeningForUserId == null) return;
+    _listeningForUserId = null;
+    await dispose();
   }
 
   // TODO: remove this function once migration is no longer needed
@@ -51,6 +106,35 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
 
   Future<void> deleteRoom(String id) async {
     await remove(id);
+  }
+
+  Future<RoomData?> findRoomByCode(String code) async {
+    final normalized = code.trim();
+    final results = await getQueryFromNetwork(
+      (query) => query.where(FieldPath.documentId, isEqualTo: normalized),
+      maxGetAllDocs: 1,
+    );
+    if (results.isEmpty) return null;
+    final room = results.values.first;
+    if (room.blackPlayer.id.isEmpty || room.whitePlayer.id.isEmpty) {
+      return room;
+    }
+    return null;
+  }
+
+  Future<bool> roomCodeExists(String code) async {
+    final results = await getQueryFromNetwork(
+      (query) => query.where(FieldPath.documentId, isEqualTo: code.trim()),
+      maxGetAllDocs: 1,
+    );
+    return results.isNotEmpty;
+  }
+
+  Future<void> joinRoom(RoomData room, String joiningUserId) async {
+    final updated = room.whitePlayer.id.isEmpty
+        ? room.copyWith(whitePlayer: Player.create(id: joiningUserId))
+        : room.copyWith(blackPlayer: Player.create(id: joiningUserId));
+    await update(updated);
   }
 }
 

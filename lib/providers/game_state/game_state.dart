@@ -10,6 +10,7 @@ import 'package:othello/objects/piece_state/piece_state.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/providers/room_data/room_data.dart' as rp;
 import 'package:othello/providers/room_data_db/room_data_db.dart';
+import 'package:othello/providers/user/users.dart';
 import 'package:othello/utils/globals.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,6 +19,7 @@ part 'game_state.g.dart';
 @Riverpod(keepAlive: true)
 class GameState extends _$GameState {
   bool _flipping = false;
+  bool _replayingOnlineMove = false;
   void Function(int status)? onEndGame;
 
   @override
@@ -39,6 +41,23 @@ class GameState extends _$GameState {
     // Auto-update room data but preserve the UI state if already initialized
     try {
       if (state.roomData.id == id) {
+        if (room.roomType == RoomType.onlinePvP &&
+            room.lastMoves.length > state.roomData.lastMoves.length &&
+            !_replayingOnlineMove) {
+          final move = _detectOnlineOpponentMove(
+            state.roomData.currentBoard,
+            room.currentBoard,
+          );
+          if (move != null) {
+            final (mi, mj) = move;
+            _replayingOnlineMove = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              await onTapOnPiece(mi, mj, false, false, true)();
+              _replayingOnlineMove = false;
+            });
+            return state;
+          }
+        }
         return state.copyWith(roomData: room);
       }
     } catch (_) {}
@@ -124,18 +143,35 @@ class GameState extends _$GameState {
     int j, [
     bool moveFromBot = false,
     bool debug = false,
+    bool moveFromOnlinePlayer = false,
   ]) => () async {
     final room = _roomData;
-    if (!moveFromBot && !room.isManualTurn) return;
+    if (!moveFromBot && !moveFromOnlinePlayer) {
+      if (room.roomType == RoomType.onlinePvP) {
+        final currentUser = ref.read(currentUserProvider);
+        if (room.playerIdTurn != currentUser.id) return;
+      } else {
+        if (!room.isManualTurn) return;
+      }
+    }
 
     // Set the piece on the UI immediately
     final currentPStates = state.pieceStates.deepUnlock;
     currentPStates[i][j] = currentPStates[i][j].updateFromBoardValue(
       room.currentPlayerMove,
     );
-    state = state.copyWith(pieceStates: currentPStates.deepLock);
+    // For online replay, we sync roomData from DB while reusing the same UI path.
+    state = state.copyWith(
+      pieceStates: currentPStates.deepLock,
+      roomData: moveFromOnlinePlayer ? ref.read(rp.roomDataProvider(id)) : room,
+    );
 
-    final piecesToFlip = await _roomNotifier.makeMove(i, j);
+    // Skip DB update when replaying opponent move already persisted from sync.
+    final piecesToFlip = await _roomNotifier.makeMove(
+      i,
+      j,
+      noDbUpdate: moveFromOnlinePlayer,
+    );
     if (piecesToFlip != null) await _startFlipAnimation(piecesToFlip, debug);
   };
 
@@ -182,6 +218,20 @@ class GameState extends _$GameState {
     }
     state = state.copyWith(pieceStates: currentPStates.deepLock);
     return havePossibleMove;
+  }
+
+  static (int, int)? _detectOnlineOpponentMove(
+    IList<IList<int>> oldBoard,
+    IList<IList<int>> newBoard,
+  ) {
+    for (int i = 0; i < oldBoard.length; i++) {
+      for (int j = 0; j < oldBoard[i].length; j++) {
+        if (oldBoard[i][j] == -1 && newBoard[i][j] != -1) {
+          return (i, j);
+        }
+      }
+    }
+    return null;
   }
 
   Future<void> _startFlipAnimation(

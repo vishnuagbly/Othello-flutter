@@ -170,6 +170,19 @@ sealed class RoomData with _$RoomData {
     );
   }
 
+  factory RoomData.onlinePvP({required String creatorUserId}) {
+    final creator = Player.create(id: creatorUserId);
+    final empty = Player.create(id: '');
+    final roomCode = (Random().nextInt(9000) + 1000).toString();
+    return RoomData._raw(
+      id: roomCode,
+      roomType: RoomType.onlinePvP,
+      blackPlayer: creator,
+      whitePlayer: empty,
+      playerIdTurn: creator.id,
+    );
+  }
+
   static IList<IList<int>> initializeBoard(int length, int height) {
     List<List<int>> board = [];
     for (int i = 0; i < height; i++) {

@@ -57,7 +57,7 @@ final class RoomDataProvider extends $NotifierProvider<RoomData, o.RoomData> {
   }
 }
 
-String _$roomDataHash() => r'c2840d15b4384070ca4c83d79e54de0251dc1682';
+String _$roomDataHash() => r'e6da9c7101c52db2e2c0594554227d586f6aa927';
 
 final class RoomDataFamily extends $Family
     with

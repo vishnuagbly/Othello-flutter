@@ -33,14 +33,14 @@ _GameState _$GameStateFromJson(Map<String, dynamic> json) => _GameState(
 
 Map<String, dynamic> _$GameStateToJson(_GameState instance) =>
     <String, dynamic>{
-      'roomData': instance.roomData,
+      'roomData': instance.roomData.toJson(),
       'boardWidth': instance.boardWidth,
       'cellWidth': instance.cellWidth,
       'flipPieceStates': instance.flipPieceStates.toJson(
-        (value) => value.toJson((value) => value),
+        (value) => value.toJson((value) => value.toJson()),
       ),
       'pieceStates': instance.pieceStates.toJson(
-        (value) => value.toJson((value) => value),
+        (value) => value.toJson((value) => value.toJson()),
       ),
       'autoReset': instance.autoReset,
     };

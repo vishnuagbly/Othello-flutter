@@ -191,6 +191,14 @@ class _GameRoomState extends ConsumerState<GameRoom>
     final roomDataHeight = ref.read(
       gameStateProvider(widget.roomDataId).select((s) => s.roomData.height),
     );
+    final isWhiteTurn = ref.watch(
+      gameStateProvider(widget.roomDataId).select((s) => s.roomData.isWhiteTurn),
+    );
+    final isOnlineRoom = ref.read(
+      gameStateProvider(
+        widget.roomDataId,
+      ).select((s) => s.roomData.roomType == RoomType.onlinePvP),
+    );
     final notifier = ref.read(gameStateProvider(widget.roomDataId).notifier);
 
     final board = Container(
@@ -214,6 +222,13 @@ class _GameRoomState extends ConsumerState<GameRoom>
                 padding: const EdgeInsets.all(15),
                 child: Column(
                   children: [
+                    if (isOnlineRoom)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          isWhiteTurn ? "White's turn" : "Black's turn",
+                        ),
+                      ),
                     Expanded(
                       child: Container(
                         child: ScoreBoard(forWhite: true, aboveBoard: true),
@@ -231,17 +246,19 @@ class _GameRoomState extends ConsumerState<GameRoom>
               floatingActionButton: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  FloatingActionButton(
-                    heroTag: "undo_button",
-                    child: Icon(Icons.undo),
-                    onPressed: notifier.undo,
-                  ),
-                  SizedBox(width: 10),
-                  FloatingActionButton(
-                    heroTag: "reset_tag",
-                    onPressed: _resetGame,
-                    child: Icon(Icons.replay),
-                  ),
+                  if (!isOnlineRoom) ...[
+                    FloatingActionButton(
+                      heroTag: "undo_button",
+                      child: Icon(Icons.undo),
+                      onPressed: notifier.undo,
+                    ),
+                    SizedBox(width: 10),
+                    FloatingActionButton(
+                      heroTag: "reset_tag",
+                      onPressed: _resetGame,
+                      child: Icon(Icons.replay),
+                    ),
+                  ],
                 ],
               ),
             ),

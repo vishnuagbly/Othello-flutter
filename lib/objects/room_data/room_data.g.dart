@@ -38,8 +38,8 @@ _RoomData _$RoomDataFromJson(Map<String, dynamic> json) => _RoomData(
 Map<String, dynamic> _$RoomDataToJson(_RoomData instance) => <String, dynamic>{
   'id': instance.id,
   'roomType': _$RoomTypeEnumMap[instance.roomType]!,
-  'blackPlayer': instance.blackPlayer,
-  'whitePlayer': instance.whitePlayer,
+  'blackPlayer': instance.blackPlayer.toJson(),
+  'whitePlayer': instance.whitePlayer.toJson(),
   'length': instance.length,
   'height': instance.height,
   'playerIdTurn': instance.playerIdTurn,

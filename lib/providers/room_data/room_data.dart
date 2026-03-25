@@ -17,11 +17,17 @@ class RoomData extends _$RoomData {
   RoomDataDb get db => ref.read(roomDataDbProvider.notifier);
 
   /// Returns pieces to flip for animation, or null if room not found or move invalid.
-  Future<List<List<List<int>>?>?> makeMove(int i, int j) async {
+  Future<List<List<List<int>>?>?> makeMove(
+    int i,
+    int j, {
+    bool noDbUpdate = false,
+  }) async {
     final result = _applyMove(state, i, j);
     if (result == null) return null;
     final (updated, piecesToFlip) = result;
-    await db.update(updated);
+    if (!noDbUpdate) {
+      await db.update(updated);
+    }
     return piecesToFlip;
   }
 
