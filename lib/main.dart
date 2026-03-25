@@ -4,11 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:othello/firebase_options.dart';
 import 'package:othello/utils/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Hive.initFlutter();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(Phoenix(child: ProviderScope(child: MyApp())));

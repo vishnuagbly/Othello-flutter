@@ -41,6 +41,7 @@ class GameState extends _$GameState {
     // Auto-update room data but preserve the UI state if already initialized
     try {
       if (state.roomData.id == id) {
+        // TODO: flip animation is not happening in online game
         if (room.roomType == RoomType.onlinePvP &&
             room.lastMoves.length > state.roomData.lastMoves.length &&
             !_replayingOnlineMove) {

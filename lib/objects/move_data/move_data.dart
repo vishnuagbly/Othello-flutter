@@ -9,6 +9,24 @@ part 'move_data.g.dart';
 Object? _readMoveDataId(Map json, String key) =>
     json[key] ?? Globals.uuid.v1();
 
+List<int> _flattenBoard(IList<IList<int>> board) {
+  return board.expand((row) => row).toList();
+}
+
+IList<IList<int>> _fromFlatBoard(List<int> flat, int width) {
+  if (width <= 0 || flat.isEmpty) return const IList.empty();
+  final rows = <IList<int>>[];
+  var temp = <int>[];
+  for (var i = 0; i < flat.length; i++) {
+    temp.add(flat[i]);
+    if ((i + 1) % width == 0) {
+      rows.add(temp.lock);
+      temp = <int>[];
+    }
+  }
+  return rows.lock;
+}
+
 class DurationSecondsConverter implements JsonConverter<Duration, int> {
   const DurationSecondsConverter();
 
@@ -24,11 +42,22 @@ class IListBoardConverter
   const IListBoardConverter();
 
   @override
-  IList<IList<int>> fromJson(List<dynamic> json) =>
-      [for (final row in json) (row as List).cast<int>()].deepLock;
+  IList<IList<int>> fromJson(List<dynamic> json) {
+    if (json.isEmpty) return const IList.empty();
+    if (json.first is List) {
+      return [for (final row in json) (row as List).cast<int>()].deepLock;
+    }
+    final width = json.first as int;
+    final cells = json.sublist(1).cast<int>();
+    return _fromFlatBoard(cells, width);
+  }
 
   @override
-  List<dynamic> toJson(IList<IList<int>> object) => object.deepUnlock;
+  List<int> toJson(IList<IList<int>> object) {
+    if (object.isEmpty) return [];
+    final width = object[0].length;
+    return [width, ..._flattenBoard(object)];
+  }
 }
 
 @freezed
