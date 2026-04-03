@@ -26,7 +26,7 @@ class RoomData extends _$RoomData {
     if (result == null) return null;
     final (updated, piecesToFlip) = result;
     if (!noDbUpdate) {
-      await db.update(updated);
+      await db.update(updated, stateOnly: updated.roomType == RoomType.offlineCvC);
     }
     return piecesToFlip;
   }
@@ -54,7 +54,7 @@ class RoomData extends _$RoomData {
       whiteTotalDuration: Duration.zero,
       timestamp: DateTime.now(),
     );
-    await db.update(updated);
+    await db.update(updated, stateOnly: updated.roomType == RoomType.offlineCvC);
   }
 
   /// Pure computation: apply move and return (new o.RoomData, piecesToFlip).

@@ -20,6 +20,7 @@ part 'game_state.g.dart';
 class GameState extends _$GameState {
   bool _flipping = false;
   bool _replayingOnlineMove = false;
+  bool _stopped = false;
   void Function(int status)? onEndGame;
 
   @override
@@ -87,6 +88,10 @@ class GameState extends _$GameState {
     this.onEndGame = onEndGame;
     _initValues(_roomData);
     WidgetsBinding.instance.addPostFrameCallback((_) => _markPossibleMoves());
+  }
+
+  void stop() {
+    _stopped = true;
   }
 
   void _initValues(RoomData room) {
@@ -185,10 +190,13 @@ class GameState extends _$GameState {
   }
 
   void _endGame() async {
+    if (_stopped) return;
     final room = _roomData;
     if (state.autoReset) {
       await _roomNotifier.resetBoard();
+      if (_stopped) return;
       await Future.delayed(const Duration(seconds: 2));
+      if (_stopped) return;
       _markPossibleMovesOrEndGame();
       _syncEachPiece(false, false);
       return;
@@ -239,6 +247,7 @@ class GameState extends _$GameState {
     List<List<List<int>>?> piecesToFlip,
     bool debug,
   ) async {
+    if (_stopped) return;
     bool gameEnded = _markPossibleMovesOrEndGame();
     if (_flipping) return;
     _flipping = true;
@@ -251,13 +260,16 @@ class GameState extends _$GameState {
         }
       }
       await Future.delayed(const Duration(milliseconds: 100));
+      if (_stopped) { _flipping = false; return; }
     }
     await Future.delayed(const Duration(milliseconds: 400));
+    if (_stopped) { _flipping = false; return; }
     _syncEachPiece(gameEnded, debug);
     _flipping = false;
   }
 
   void _syncEachPiece(bool gameEnded, bool debug) {
+    if (_stopped) return;
     var newPStates = state.pieceStates.deepUnlock;
     var newFStates = state.flipPieceStates.deepUnlock;
     for (int i = 0; i < _roomData.height; i++) {
@@ -282,6 +294,7 @@ class GameState extends _$GameState {
   }
 
   Future<void> makeNextTurn(bool gameEnded, {bool debug = false}) async {
+    if (_stopped) return;
     final room = _roomData;
     if (debug) {
       log(
@@ -291,6 +304,7 @@ class GameState extends _$GameState {
     }
     if (!room.isManualTurn && !gameEnded) {
       var nextMove = await room.nextTurn;
+      if (_stopped) return;
       if (nextMove != null && nextMove.length >= 2) {
         await onTapOnPiece(nextMove[0], nextMove[1], true, debug)();
       }

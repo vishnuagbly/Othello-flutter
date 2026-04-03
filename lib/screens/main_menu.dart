@@ -4,14 +4,48 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/components/custom_button.dart';
 import 'package:othello/objects/room_data/room_data.dart';
+import 'package:othello/providers/game_state/game_state.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/online.dart';
 import 'package:othello/utils/globals.dart';
 
-class MainMenu extends ConsumerWidget {
+class MainMenu extends ConsumerStatefulWidget {
+  const MainMenu();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainMenu> createState() => _MainMenuState();
+}
+
+class _MainMenuState extends ConsumerState<MainMenu> {
+  bool _showPreview = true;
+  String? _previewRoomId;
+  GameState? _previewGameState;
+  RoomDataDb? _roomDataDb;
+
+  @override
+  void dispose() {
+    _cleanupPreview();
+    super.dispose();
+  }
+
+  void _cleanupPreview() {
+    _previewGameState?.stop();
+    if (_previewRoomId != null) {
+      _roomDataDb?.deleteRoom(_previewRoomId!);
+    }
+    _previewRoomId = null;
+    _previewGameState = null;
+  }
+
+  void _onPreviewRoomCreated(String roomId) {
+    _previewRoomId = roomId;
+    _previewGameState = ref.read(gameStateProvider(roomId).notifier);
+    _roomDataDb = ref.read(roomDataDbProvider.notifier);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     Globals.setMediaQueryData(context);
 
     return Container(
@@ -42,7 +76,14 @@ class MainMenu extends ConsumerWidget {
                   constraints: BoxConstraints(
                     maxHeight: Globals.screenHeight * 0.5,
                   ),
-                  child: FittedBox(child: _PreviewCvC()),
+                  child: FittedBox(
+                    child: _showPreview
+                        ? _PreviewCvC(
+                            key: ValueKey(_previewRoomId),
+                            onRoomCreated: _onPreviewRoomCreated,
+                          )
+                        : SizedBox(width: 200, height: 200),
+                  ),
                 ),
                 SizedBox(height: 40),
                 Row(
@@ -51,14 +92,14 @@ class MainMenu extends ConsumerWidget {
                     CustomButton(
                       text: "vs Computer",
                       onPressed: () =>
-                          _onPlayPressed(context, ref, RoomType.offlinePvC),
+                          _onPlayPressed(context, RoomType.offlinePvC),
                       width: Globals.maxScreenWidth * 0.34,
                     ),
                     SizedBox(width: Globals.maxScreenWidth * 0.06),
                     CustomButton(
                       text: "Pass N Play",
                       onPressed: () =>
-                          _onPlayPressed(context, ref, RoomType.offlinePvP),
+                          _onPlayPressed(context, RoomType.offlinePvP),
                       width: Globals.maxScreenWidth * 0.34,
                       white: false,
                     ),
@@ -67,7 +108,10 @@ class MainMenu extends ConsumerWidget {
                 const SizedBox(height: 20),
                 CustomButton(
                   text: "Online",
-                  onPressed: () => context.push(OnlineScreen.kPath),
+                  onPressed: () {
+                    _cleanupPreview();
+                    context.push(OnlineScreen.kPath);
+                  },
                   width: Globals.maxScreenWidth * 0.34,
                 ),
               ],
@@ -80,9 +124,9 @@ class MainMenu extends ConsumerWidget {
 
   Future<void> _onPlayPressed(
     BuildContext context,
-    WidgetRef ref,
     RoomType type,
   ) async {
+    _cleanupPreview();
     await ref.read(roomDataDbProvider.notifier).waitForInitialization;
     final rooms = ref.read(roomsByTypeProvider(type));
 
@@ -105,7 +149,12 @@ class MainMenu extends ConsumerWidget {
 }
 
 class _PreviewCvC extends ConsumerStatefulWidget {
-  const _PreviewCvC();
+  final void Function(String roomId) onRoomCreated;
+
+  const _PreviewCvC({
+    super.key,
+    required this.onRoomCreated,
+  });
 
   @override
   ConsumerState<_PreviewCvC> createState() => _PreviewCvCState();
@@ -124,7 +173,10 @@ class _PreviewCvCState extends ConsumerState<_PreviewCvC> {
     await ref.read(roomDataDbProvider.notifier).waitForInitialization;
     final room = RoomData.offlineCvC();
     final id = await ref.read(roomDataDbProvider.notifier).createRoom(room);
-    if (mounted) setState(() => _previewRoomId = id);
+    if (mounted) {
+      setState(() => _previewRoomId = id);
+      widget.onRoomCreated(id);
+    }
   }
 
   @override

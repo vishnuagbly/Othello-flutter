@@ -62,6 +62,7 @@ class FlipPieceState extends ConsumerState<FlipPiece> {
     final _onFinishPlaying = (ImageSequenceAnimatorState state) {
       if (pieceValue % 2 == 0) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         ref
             .read(gameStateProvider(widget.roomDataId).notifier)
             .set(widget.i, widget.j);
