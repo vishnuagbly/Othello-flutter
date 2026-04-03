@@ -44,7 +44,6 @@ class GameState extends _$GameState {
     final previous = stateOrNull;
     if (previous == null) return gso.GameState(roomData: room);
 
-    // TODO: flip animation is not happening in online game
     if (room.roomType == RoomType.onlinePvP &&
         room.lastMoves.length > previous.roomData.lastMoves.length &&
         !_replayingOnlineMove) {
