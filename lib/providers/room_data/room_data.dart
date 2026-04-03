@@ -7,7 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'room_data.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class RoomData extends _$RoomData {
   @override
   o.RoomData build(String id) {
@@ -25,14 +25,13 @@ class RoomData extends _$RoomData {
     final result = _applyMove(state, i, j);
     if (result == null) return null;
     final (updated, piecesToFlip) = result;
-    if (!noDbUpdate) {
-      await db.update(updated, stateOnly: updated.roomType == RoomType.offlineCvC);
-    }
+    noDbUpdate = noDbUpdate || updated.roomType == RoomType.offlineCvC;
+    await db.update(updated, stateOnly: noDbUpdate);
     return piecesToFlip;
   }
 
   /// Returns true if undo was performed.
-  Future<bool> undo() async {
+  Future<bool> undo([bool noDbUpdate = false]) async {
     o.RoomData? next = _applyUndo(state);
     /* Here we need lastMoves length to at least be 2, since based on the
      implementation of [_applyUndo], it get lastToLastMoves as well, which can
@@ -41,7 +40,7 @@ class RoomData extends _$RoomData {
       next = _applyUndo(next);
     }
     if (next == null) return false;
-    await db.update(next);
+    await db.update(next, stateOnly: noDbUpdate);
     return true;
   }
 
@@ -54,7 +53,10 @@ class RoomData extends _$RoomData {
       whiteTotalDuration: Duration.zero,
       timestamp: DateTime.now(),
     );
-    await db.update(updated, stateOnly: updated.roomType == RoomType.offlineCvC);
+    await db.update(
+      updated,
+      stateOnly: updated.roomType == RoomType.offlineCvC,
+    );
   }
 
   /// Pure computation: apply move and return (new o.RoomData, piecesToFlip).

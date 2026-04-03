@@ -21,6 +21,7 @@ class GameState extends _$GameState {
   bool _flipping = false;
   bool _replayingOnlineMove = false;
   bool _stopped = false;
+  (int, int)? _lastMove = null;
   void Function(int status)? onEndGame;
 
   @override
@@ -40,30 +41,31 @@ class GameState extends _$GameState {
     final room = ref.watch(rp.roomDataProvider(id));
 
     // Auto-update room data but preserve the UI state if already initialized
-    try {
-      if (state.roomData.id == id) {
-        // TODO: flip animation is not happening in online game
-        if (room.roomType == RoomType.onlinePvP &&
-            room.lastMoves.length > state.roomData.lastMoves.length &&
-            !_replayingOnlineMove) {
-          final move = _detectOnlineOpponentMove(
-            state.roomData.currentBoard,
-            room.currentBoard,
-          );
-          if (move != null) {
-            final (mi, mj) = move;
-            _replayingOnlineMove = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) async {
-              await onTapOnPiece(mi, mj, false, false, true)();
-              _replayingOnlineMove = false;
-            });
-            return state;
-          }
-        }
-        return state.copyWith(roomData: room);
+    final previous = stateOrNull;
+    if (previous == null) return gso.GameState(roomData: room);
+
+    // TODO: flip animation is not happening in online game
+    if (room.roomType == RoomType.onlinePvP &&
+        room.lastMoves.length > previous.roomData.lastMoves.length &&
+        !_replayingOnlineMove) {
+      final move = _detectOnlineOpponentMove(
+        previous.roomData.currentBoard,
+        room.currentBoard,
+      );
+      if (move != null && move != _lastMove) {
+        final (mi, mj) = move;
+        _replayingOnlineMove = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await ref.read(rp.roomDataProvider(id).notifier).undo(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await onTapOnPiece(mi, mj, false, false, true)();
+            _replayingOnlineMove = false;
+          });
+        });
+        return previous;
       }
-    } catch (_) {}
-    return gso.GameState(roomData: room);
+    }
+    return previous.copyWith(roomData: room);
   }
 
   RoomData get _roomData => state.roomData;
@@ -155,11 +157,17 @@ class GameState extends _$GameState {
     if (!moveFromBot && !moveFromOnlinePlayer) {
       if (room.roomType == RoomType.onlinePvP) {
         final currentUser = ref.read(currentUserProvider);
-        if (room.playerIdTurn != currentUser.id) return;
+        if (room.playerIdTurn != currentUser.id) {
+          return;
+        }
       } else {
-        if (!room.isManualTurn) return;
+        if (!room.isManualTurn) {
+          return;
+        }
       }
     }
+
+    _lastMove = (i, j);
 
     // Set the piece on the UI immediately
     final currentPStates = state.pieceStates.deepUnlock;
@@ -169,7 +177,7 @@ class GameState extends _$GameState {
     // For online replay, we sync roomData from DB while reusing the same UI path.
     state = state.copyWith(
       pieceStates: currentPStates.deepLock,
-      roomData: moveFromOnlinePlayer ? ref.read(rp.roomDataProvider(id)) : room,
+      roomData: room,
     );
 
     // Skip DB update when replaying opponent move already persisted from sync.
@@ -260,10 +268,16 @@ class GameState extends _$GameState {
         }
       }
       await Future.delayed(const Duration(milliseconds: 100));
-      if (_stopped) { _flipping = false; return; }
+      if (_stopped) {
+        _flipping = false;
+        return;
+      }
     }
     await Future.delayed(const Duration(milliseconds: 400));
-    if (_stopped) { _flipping = false; return; }
+    if (_stopped) {
+      _flipping = false;
+      return;
+    }
     _syncEachPiece(gameEnded, debug);
     _flipping = false;
   }

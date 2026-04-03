@@ -43,7 +43,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
   fast_immutable_collections: ^11.1.0
-  synckit: ^0.3.8
+  synckit: ^0.3.17
   google_sign_in_all_platforms: ^2.0.2
   firebase_core: ^4.5.0
   cloud_firestore: ^6.1.3

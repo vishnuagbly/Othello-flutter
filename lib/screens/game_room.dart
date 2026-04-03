@@ -87,9 +87,10 @@ class _GameRoomState extends ConsumerState<GameRoom>
             );
         _initStack();
         /* Not doing setState because, already watching gameState in build */
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => setState(() => _initialized = true),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() => _initialized = true);
+        });
       }
     });
   }
@@ -192,7 +193,9 @@ class _GameRoomState extends ConsumerState<GameRoom>
       gameStateProvider(widget.roomDataId).select((s) => s.roomData.height),
     );
     final isWhiteTurn = ref.watch(
-      gameStateProvider(widget.roomDataId).select((s) => s.roomData.isWhiteTurn),
+      gameStateProvider(
+        widget.roomDataId,
+      ).select((s) => s.roomData.isWhiteTurn),
     );
     final isOnlineRoom = ref.read(
       gameStateProvider(
