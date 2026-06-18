@@ -8,6 +8,8 @@ import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/providers/user/users.dart';
 import 'package:othello/utils/globals.dart';
 
+import 'components/join_room_dialog.dart';
+
 class RoomListScreen extends ConsumerWidget {
   const RoomListScreen({super.key, required this.roomType});
 
@@ -120,7 +122,9 @@ class RoomListScreen extends ConsumerWidget {
                   ref.read(roomDataDbProvider.notifier).deleteRoom(room.id);
                 },
               ),
-              onTap: canEnter ? () => context.go('/game_room/${room.id}') : null,
+              onTap: canEnter
+                  ? () => context.go('/game_room/${room.id}')
+                  : null,
             ),
           );
         },
@@ -219,9 +223,9 @@ class RoomListScreen extends ConsumerWidget {
     }
     if (roomToCreate == null) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to create room code.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to create room code.')),
+      );
       return;
     }
     final id = await notifier.createRoom(roomToCreate);
@@ -246,30 +250,10 @@ class RoomListScreen extends ConsumerWidget {
     WidgetRef ref,
     String currentUserId,
   ) async {
-    final codeController = TextEditingController();
     final code = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Join Room'),
-        content: TextField(
-          controller: codeController,
-          keyboardType: TextInputType.number,
-          maxLength: 4,
-          decoration: const InputDecoration(hintText: 'Enter 4-digit code'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(codeController.text.trim()),
-            child: const Text('Join'),
-          ),
-        ],
-      ),
+      builder: (ctx) => JoinRoomDialog(),
     );
-    codeController.dispose();
     if (!context.mounted || code == null) return;
     if (!RegExp(r'^\d{4}$').hasMatch(code)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -288,7 +272,8 @@ class RoomListScreen extends ConsumerWidget {
       return;
     }
 
-    if (room.blackPlayer.id == currentUserId || room.whitePlayer.id == currentUserId) {
+    if (room.blackPlayer.id == currentUserId ||
+        room.whitePlayer.id == currentUserId) {
       if (!_isOnlineRoomReady(room)) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(

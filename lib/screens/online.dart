@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:othello/objects/room_data/room_data.dart';
-import 'package:othello/screens/room_list.dart';
+import 'package:othello/screens/room_list/room_list.dart';
 
 class OnlineScreen extends ConsumerWidget {
   static const kPath = '/online/rooms';

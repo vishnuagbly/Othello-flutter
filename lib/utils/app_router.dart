@@ -5,7 +5,7 @@ import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/main_menu.dart';
 import 'package:othello/screens/online.dart';
-import 'package:othello/screens/room_list.dart';
+import 'package:othello/screens/room_list/room_list.dart';
 
 final goRouter = GoRouter(
   routes: [
