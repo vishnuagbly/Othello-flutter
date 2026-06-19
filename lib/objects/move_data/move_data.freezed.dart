@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MoveData {
 
-@IListBoardConverter() IList<IList<int>> get board;@JsonKey(readValue: _readMoveDataId) String get id;@DurationSecondsConverter() Duration get duration; DateTime get timestamp; String get playerIdTurn;
+@IListBoardConverter() IList<IList<int>> get board;@JsonKey(readValue: _readMoveDataId) String get id;@DurationSecondsConverter() Duration get duration; DateTime get timestamp; String get playerIdTurn; int get moveI; int get moveJ;
 /// Create a copy of MoveData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $MoveDataCopyWith<MoveData> get copyWith => _$MoveDataCopyWithImpl<MoveData>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MoveData&&const DeepCollectionEquality().equals(other.board, board)&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.playerIdTurn, playerIdTurn) || other.playerIdTurn == playerIdTurn));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MoveData&&const DeepCollectionEquality().equals(other.board, board)&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.playerIdTurn, playerIdTurn) || other.playerIdTurn == playerIdTurn)&&(identical(other.moveI, moveI) || other.moveI == moveI)&&(identical(other.moveJ, moveJ) || other.moveJ == moveJ));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(board),id,duration,timestamp,playerIdTurn);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(board),id,duration,timestamp,playerIdTurn,moveI,moveJ);
 
 @override
 String toString() {
-  return 'MoveData(board: $board, id: $id, duration: $duration, timestamp: $timestamp, playerIdTurn: $playerIdTurn)';
+  return 'MoveData(board: $board, id: $id, duration: $duration, timestamp: $timestamp, playerIdTurn: $playerIdTurn, moveI: $moveI, moveJ: $moveJ)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $MoveDataCopyWith<$Res>  {
   factory $MoveDataCopyWith(MoveData value, $Res Function(MoveData) _then) = _$MoveDataCopyWithImpl;
 @useResult
 $Res call({
-@IListBoardConverter() IList<IList<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn
+@IListBoardConverter() IList<IList<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn, int moveI, int moveJ
 });
 
 
@@ -65,14 +65,16 @@ class _$MoveDataCopyWithImpl<$Res>
 
 /// Create a copy of MoveData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? board = null,Object? id = null,Object? duration = null,Object? timestamp = null,Object? playerIdTurn = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? board = null,Object? id = null,Object? duration = null,Object? timestamp = null,Object? playerIdTurn = null,Object? moveI = null,Object? moveJ = null,}) {
   return _then(_self.copyWith(
 board: null == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
 as IList<IList<int>>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,playerIdTurn: null == playerIdTurn ? _self.playerIdTurn : playerIdTurn // ignore: cast_nullable_to_non_nullable
-as String,
+as String,moveI: null == moveI ? _self.moveI : moveI // ignore: cast_nullable_to_non_nullable
+as int,moveJ: null == moveJ ? _self.moveJ : moveJ // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -154,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn,  int moveI,  int moveJ)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MoveData() when $default != null:
-return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn);case _:
+return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn,_that.moveI,_that.moveJ);case _:
   return orElse();
 
 }
@@ -175,10 +177,10 @@ return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.player
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn,  int moveI,  int moveJ)  $default,) {final _that = this;
 switch (_that) {
 case _MoveData():
-return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn);}
+return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn,_that.moveI,_that.moveJ);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -192,10 +194,10 @@ return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.player
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@IListBoardConverter()  IList<IList<int>> board, @JsonKey(readValue: _readMoveDataId)  String id, @DurationSecondsConverter()  Duration duration,  DateTime timestamp,  String playerIdTurn,  int moveI,  int moveJ)?  $default,) {final _that = this;
 switch (_that) {
 case _MoveData() when $default != null:
-return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn);case _:
+return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.playerIdTurn,_that.moveI,_that.moveJ);case _:
   return null;
 
 }
@@ -207,7 +209,7 @@ return $default(_that.board,_that.id,_that.duration,_that.timestamp,_that.player
 @JsonSerializable()
 
 class _MoveData extends MoveData {
-  const _MoveData({@IListBoardConverter() required this.board, @JsonKey(readValue: _readMoveDataId) required this.id, @DurationSecondsConverter() required this.duration, required this.timestamp, required this.playerIdTurn}): super._();
+  const _MoveData({@IListBoardConverter() required this.board, @JsonKey(readValue: _readMoveDataId) required this.id, @DurationSecondsConverter() required this.duration, required this.timestamp, required this.playerIdTurn, required this.moveI, required this.moveJ}): super._();
   factory _MoveData.fromJson(Map<String, dynamic> json) => _$MoveDataFromJson(json);
 
 @override@IListBoardConverter() final  IList<IList<int>> board;
@@ -215,6 +217,8 @@ class _MoveData extends MoveData {
 @override@DurationSecondsConverter() final  Duration duration;
 @override final  DateTime timestamp;
 @override final  String playerIdTurn;
+@override final  int moveI;
+@override final  int moveJ;
 
 /// Create a copy of MoveData
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MoveData&&const DeepCollectionEquality().equals(other.board, board)&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.playerIdTurn, playerIdTurn) || other.playerIdTurn == playerIdTurn));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MoveData&&const DeepCollectionEquality().equals(other.board, board)&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.playerIdTurn, playerIdTurn) || other.playerIdTurn == playerIdTurn)&&(identical(other.moveI, moveI) || other.moveI == moveI)&&(identical(other.moveJ, moveJ) || other.moveJ == moveJ));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(board),id,duration,timestamp,playerIdTurn);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(board),id,duration,timestamp,playerIdTurn,moveI,moveJ);
 
 @override
 String toString() {
-  return 'MoveData(board: $board, id: $id, duration: $duration, timestamp: $timestamp, playerIdTurn: $playerIdTurn)';
+  return 'MoveData(board: $board, id: $id, duration: $duration, timestamp: $timestamp, playerIdTurn: $playerIdTurn, moveI: $moveI, moveJ: $moveJ)';
 }
 
 
@@ -249,7 +253,7 @@ abstract mixin class _$MoveDataCopyWith<$Res> implements $MoveDataCopyWith<$Res>
   factory _$MoveDataCopyWith(_MoveData value, $Res Function(_MoveData) _then) = __$MoveDataCopyWithImpl;
 @override @useResult
 $Res call({
-@IListBoardConverter() IList<IList<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn
+@IListBoardConverter() IList<IList<int>> board,@JsonKey(readValue: _readMoveDataId) String id,@DurationSecondsConverter() Duration duration, DateTime timestamp, String playerIdTurn, int moveI, int moveJ
 });
 
 
@@ -266,14 +270,16 @@ class __$MoveDataCopyWithImpl<$Res>
 
 /// Create a copy of MoveData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? board = null,Object? id = null,Object? duration = null,Object? timestamp = null,Object? playerIdTurn = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? board = null,Object? id = null,Object? duration = null,Object? timestamp = null,Object? playerIdTurn = null,Object? moveI = null,Object? moveJ = null,}) {
   return _then(_MoveData(
 board: null == board ? _self.board : board // ignore: cast_nullable_to_non_nullable
 as IList<IList<int>>,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime,playerIdTurn: null == playerIdTurn ? _self.playerIdTurn : playerIdTurn // ignore: cast_nullable_to_non_nullable
-as String,
+as String,moveI: null == moveI ? _self.moveI : moveI // ignore: cast_nullable_to_non_nullable
+as int,moveJ: null == moveJ ? _self.moveJ : moveJ // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

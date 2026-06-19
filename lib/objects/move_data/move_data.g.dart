@@ -14,6 +14,8 @@ _MoveData _$MoveDataFromJson(Map<String, dynamic> json) => _MoveData(
   ),
   timestamp: DateTime.parse(json['timestamp'] as String),
   playerIdTurn: json['playerIdTurn'] as String,
+  moveI: (json['moveI'] as num).toInt(),
+  moveJ: (json['moveJ'] as num).toInt(),
 );
 
 Map<String, dynamic> _$MoveDataToJson(_MoveData instance) => <String, dynamic>{
@@ -22,4 +24,6 @@ Map<String, dynamic> _$MoveDataToJson(_MoveData instance) => <String, dynamic>{
   'duration': const DurationSecondsConverter().toJson(instance.duration),
   'timestamp': instance.timestamp.toIso8601String(),
   'playerIdTurn': instance.playerIdTurn,
+  'moveI': instance.moveI,
+  'moveJ': instance.moveJ,
 };

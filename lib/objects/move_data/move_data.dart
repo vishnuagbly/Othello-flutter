@@ -70,6 +70,8 @@ sealed class MoveData with _$MoveData {
     @DurationSecondsConverter() required Duration duration,
     required DateTime timestamp,
     required String playerIdTurn,
+    required int moveI,
+    required int moveJ,
   }) = _MoveData;
 
   factory MoveData.create({
@@ -77,6 +79,8 @@ sealed class MoveData with _$MoveData {
     required Duration duration,
     required String playerIdTurn,
     required DateTime timestamp,
+    required int moveI,
+    required int moveJ,
   }) =>
       MoveData(
         board: board,
@@ -84,6 +88,8 @@ sealed class MoveData with _$MoveData {
         duration: duration,
         playerIdTurn: playerIdTurn,
         timestamp: timestamp,
+        moveI: moveI,
+        moveJ: moveJ,
       );
 
   factory MoveData.fromJson(Map<String, dynamic> json) =>

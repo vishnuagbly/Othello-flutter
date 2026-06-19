@@ -19,7 +19,7 @@ final class RoomDataProvider extends $NotifierProvider<RoomData, o.RoomData> {
   }) : super(
          retry: null,
          name: r'roomDataProvider',
-         isAutoDispose: true,
+         isAutoDispose: false,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
@@ -57,7 +57,7 @@ final class RoomDataProvider extends $NotifierProvider<RoomData, o.RoomData> {
   }
 }
 
-String _$roomDataHash() => r'e6da9c7101c52db2e2c0594554227d586f6aa927';
+String _$roomDataHash() => r'70a9249fcd307d038228ea16c54b868511a2bb4a';
 
 final class RoomDataFamily extends $Family
     with
@@ -74,7 +74,7 @@ final class RoomDataFamily extends $Family
         name: r'roomDataProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-        isAutoDispose: true,
+        isAutoDispose: false,
       );
 
   RoomDataProvider call(String id) =>

@@ -19,52 +19,95 @@ part 'game_state.g.dart';
 @Riverpod(keepAlive: true)
 class GameState extends _$GameState {
   bool _flipping = false;
-  bool _replayingOnlineMove = false;
   bool _stopped = false;
-  (int, int)? _lastMove = null;
+  RoomData? _pendingRoom;
   void Function(int status)? onEndGame;
 
   @override
   gso.GameState build(String id) {
-    // Check existence with ref.read (non-reactive) first.
-    // If the room was deleted, return stale state WITHOUT calling ref.watch,
-    // so this keepAlive provider stops reacting to future DB changes and
-    // becomes inert (no ongoing rebuild cycles from DB mutations).
-    final roomExists = ref.read(roomExistsProvider(id));
-    if (!roomExists) {
+    // Watch existence (not roomData). This bool is stable during gameplay, so
+    // build re-runs only on room create/delete, never per move. On deletion
+    // (e.g. reset), stop reacting and return the stale state so this keepAlive
+    // provider becomes inert. roomDataProvider throws once the room is gone, so
+    // this guard must come before reading/listening to it.
+    final exists = ref.watch(roomExistsProvider(id));
+    if (!exists) {
+      stop();
       try {
         return state;
       } catch (_) {
         throw StateError('RoomData not found for id: $id');
       }
     }
-    final room = ref.watch(rp.roomDataProvider(id));
+    final room = ref.read(rp.roomDataProvider(id));
 
-    // Auto-update room data but preserve the UI state if already initialized
+    // Single reactive entry point: every move (local, bot, online opponent)
+    // lands here as a roomData change and is rendered by [_onRoomChanged].
+    ref.listen(rp.roomDataProvider(id), (_, next) => _onRoomChanged(next));
+
     final previous = stateOrNull;
     if (previous == null) return gso.GameState(roomData: room);
-
-    if (room.roomType == RoomType.onlinePvP &&
-        room.lastMoves.length > previous.roomData.lastMoves.length &&
-        !_replayingOnlineMove) {
-      final move = _detectOnlineOpponentMove(
-        previous.roomData.currentBoard,
-        room.currentBoard,
-      );
-      if (move != null && move != _lastMove) {
-        final (mi, mj) = move;
-        _replayingOnlineMove = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await ref.read(rp.roomDataProvider(id).notifier).undo(true);
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            await onTapOnPiece(mi, mj, false, false, true)();
-            _replayingOnlineMove = false;
-          });
-        });
-        return previous;
-      }
-    }
     return previous.copyWith(roomData: room);
+  }
+
+  /// Reacts to a roomData change by diffing move history against the last
+  /// rendered state. A single new move animates forward; anything else
+  /// (undo, reset, multi-step jump) snaps the board without animation.
+  void _onRoomChanged(RoomData next) {
+    if (_stopped) return;
+    // UI not initialized yet (no piece states); just track the latest room.
+    if (state.pieceStates.isEmpty) {
+      state = state.copyWith(roomData: next);
+      return;
+    }
+    // An animation is in flight; remember the latest room and process it once
+    // the current animation completes.
+    if (_flipping) {
+      _pendingRoom = next;
+      return;
+    }
+    final current = state.roomData;
+    final delta = next.lastMoves.length - current.lastMoves.length;
+    if (delta == 1) {
+      _animateForwardMove(current, next);
+    } else if (delta == 0) {
+      // Metadata-only change (e.g. opponent joined); no board re-render needed.
+      state = state.copyWith(roomData: next);
+    } else {
+      _snapTo(next);
+    }
+  }
+
+  /// Renders a single new move with the flip animation. [pre] is the board
+  /// before the move (used to compute the pieces to flip), [next] is the new
+  /// logical state from the DB.
+  void _animateForwardMove(RoomData pre, RoomData next) {
+    final last = next.lastMoves.last;
+    final i = last.moveI, j = last.moveJ;
+    final piecesToFlip = pre.getPiecesToFlip(i, j, pre.currentPlayerMove);
+
+    final pStates = state.pieceStates.deepUnlock;
+    pStates[i][j] = pStates[i][j].updateFromBoardValue(pre.currentPlayerMove);
+    state = state.copyWith(roomData: next, pieceStates: pStates.deepLock);
+
+    _startFlipAnimation(piecesToFlip, false);
+  }
+
+  /// Adopts [next] and renders the board directly, without animation. Used for
+  /// undo, reset, and catch-up jumps.
+  void _snapTo(RoomData next) {
+    state = state.copyWith(roomData: next);
+    _syncEachPiece(false, false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _markPossibleMovesOrEndGame();
+    });
+  }
+
+  void _drainPending() {
+    final pending = _pendingRoom;
+    if (pending == null) return;
+    _pendingRoom = null;
+    _onRoomChanged(pending);
   }
 
   RoomData get _roomData => state.roomData;
@@ -133,59 +176,23 @@ class GameState extends _$GameState {
     );
   }
 
-  void undo({bool debug = false}) async {
-    if (debug) print("performing undo");
-    final didUndo = await _roomNotifier.undo();
-    if (!didUndo) return;
-    if (!_flipping) _syncEachPiece(false, debug);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (debug) print("marking possible moves");
-      _markPossibleMovesOrEndGame();
-    });
+  /// Triggers an undo on the DB. Rendering is handled reactively by
+  /// [_onRoomChanged] (delta < 0 -> snap).
+  Future<void> undo() async {
+    await _roomNotifier.undo();
   }
 
-  Future<void> Function() onTapOnPiece(
-    int i,
-    int j, [
-    bool moveFromBot = false,
-    bool debug = false,
-    bool moveFromOnlinePlayer = false,
-  ]) => () async {
+  /// Handles a human tap. Only validates whose turn it is, then writes the move
+  /// to the DB. The resulting roomData change is rendered by [_onRoomChanged].
+  Future<void> Function() onTapOnPiece(int i, int j) => () async {
     final room = _roomData;
-    if (!moveFromBot && !moveFromOnlinePlayer) {
-      if (room.roomType == RoomType.onlinePvP) {
-        final currentUser = ref.read(currentUserProvider);
-        if (room.playerIdTurn != currentUser.id) {
-          return;
-        }
-      } else {
-        if (!room.isManualTurn) {
-          return;
-        }
-      }
+    if (room.roomType == RoomType.onlinePvP) {
+      final currentUser = ref.read(currentUserProvider);
+      if (room.playerIdTurn != currentUser.id) return;
+    } else {
+      if (!room.isManualTurn) return;
     }
-
-    _lastMove = (i, j);
-
-    // Set the piece on the UI immediately
-    final currentPStates = state.pieceStates.deepUnlock;
-    currentPStates[i][j] = currentPStates[i][j].updateFromBoardValue(
-      room.currentPlayerMove,
-    );
-    // For online replay, we sync roomData from DB while reusing the same UI path.
-    state = state.copyWith(
-      pieceStates: currentPStates.deepLock,
-      roomData: room,
-    );
-
-    // Skip DB update when replaying opponent move already persisted from sync.
-    final piecesToFlip = await _roomNotifier.makeMove(
-      i,
-      j,
-      noDbUpdate: moveFromOnlinePlayer,
-    );
-    if (piecesToFlip != null) await _startFlipAnimation(piecesToFlip, debug);
+    await _roomNotifier.makeMove(i, j);
   };
 
   bool _markPossibleMovesOrEndGame({bool callEndGame = true}) {
@@ -198,17 +205,15 @@ class GameState extends _$GameState {
 
   void _endGame() async {
     if (_stopped) return;
-    final room = _roomData;
     if (state.autoReset) {
-      await _roomNotifier.resetBoard();
-      if (_stopped) return;
+      // Show the finished board briefly, then reset. The resetBoard change is
+      // rendered (and the CvC preview restarted) reactively via _onRoomChanged.
       await Future.delayed(const Duration(seconds: 2));
       if (_stopped) return;
-      _markPossibleMovesOrEndGame();
-      _syncEachPiece(false, false);
+      await _roomNotifier.resetBoard();
       return;
     }
-    final status = room.getStatus();
+    final status = _roomData.getStatus();
     onEndGame?.call(status);
   }
 
@@ -234,20 +239,6 @@ class GameState extends _$GameState {
     }
     state = state.copyWith(pieceStates: currentPStates.deepLock);
     return havePossibleMove;
-  }
-
-  static (int, int)? _detectOnlineOpponentMove(
-    IList<IList<int>> oldBoard,
-    IList<IList<int>> newBoard,
-  ) {
-    for (int i = 0; i < oldBoard.length; i++) {
-      for (int j = 0; j < oldBoard[i].length; j++) {
-        if (oldBoard[i][j] == -1 && newBoard[i][j] != -1) {
-          return (i, j);
-        }
-      }
-    }
-    return null;
   }
 
   Future<void> _startFlipAnimation(
@@ -279,6 +270,7 @@ class GameState extends _$GameState {
     }
     _syncEachPiece(gameEnded, debug);
     _flipping = false;
+    _drainPending();
   }
 
   void _syncEachPiece(bool gameEnded, bool debug) {
@@ -319,7 +311,8 @@ class GameState extends _$GameState {
       var nextMove = await room.nextTurn;
       if (_stopped) return;
       if (nextMove != null && nextMove.length >= 2) {
-        await onTapOnPiece(nextMove[0], nextMove[1], true, debug)();
+        // Bots write directly to the DB; the move is rendered via _onRoomChanged.
+        await _roomNotifier.makeMove(nextMove[0], nextMove[1]);
       }
     }
   }

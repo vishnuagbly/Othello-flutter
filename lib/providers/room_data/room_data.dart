@@ -94,6 +94,8 @@ class RoomData extends _$RoomData {
       duration: durationToAdd,
       playerIdTurn: room.playerIdTurn,
       timestamp: room.timestamp,
+      moveI: i,
+      moveJ: j,
     );
     final newLastMoves = room.lastMoves.add(currentMove);
     String nextTurnId = room.isWhiteTurn
