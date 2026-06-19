@@ -78,14 +78,21 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
     await dispose();
   }
 
-  // TODO: remove this function once migration is no longer needed
   Future<void> _ensureCvCNotPersisted() async {
     final cvCRooms = state.entries
         .where((e) => e.value.roomType == RoomType.offlineCvC)
         .toList();
     if (cvCRooms.isEmpty) return;
     for (final e in cvCRooms) {
-      await remove(e.key);
+      /* Inside try-catch black to prevent a race-condition, in which case
+      * due to a separate async process the same key could have been deleted, by
+      * the time we are actually able to delete it here. Hence causing the
+      * error. */
+      try {
+        await remove(e.key);
+      } catch (err) {
+        if (state.containsKey(e.key)) rethrow;
+      }
     }
     for (final e in cvCRooms) {
       await update(e.value, stateOnly: true);
