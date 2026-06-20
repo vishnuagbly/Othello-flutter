@@ -6,6 +6,7 @@ import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/main_menu.dart';
 import 'package:othello/screens/online.dart';
 import 'package:othello/screens/room_list/room_list.dart';
+import 'package:othello/screens/stats/stats.dart';
 
 final goRouter = GoRouter(
   routes: [
@@ -27,7 +28,11 @@ final goRouter = GoRouter(
     ),
     GoRoute(
       path: OnlineScreen.kPath,
-      builder: (context, state) => OnlineScreen().userSafe,
+      builder: (context, state) => (const OnlineScreen()).userSafe,
+    ),
+    GoRoute(
+      path: StatsScreen.kPath,
+      builder: (context, state) => const StatsScreen(),
     ),
   ],
 );

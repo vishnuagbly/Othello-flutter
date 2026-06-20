@@ -8,6 +8,7 @@ import 'package:othello/providers/game_state/game_state.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/online.dart';
+import 'package:othello/screens/stats/stats.dart';
 import 'package:othello/utils/globals.dart';
 
 class MainMenu extends ConsumerStatefulWidget {
@@ -114,6 +115,15 @@ class _MainMenuState extends ConsumerState<MainMenu> {
                   },
                   width: Globals.maxScreenWidth * 0.34,
                 ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  text: "Text Screen",
+                  onPressed: () {
+                    context.push(StatsScreen.kPath);
+                  },
+                  white: false,
+                  width: Globals.maxScreenWidth * 0.34,
+                ),
               ],
             ),
           ),
@@ -122,10 +132,7 @@ class _MainMenuState extends ConsumerState<MainMenu> {
     );
   }
 
-  Future<void> _onPlayPressed(
-    BuildContext context,
-    RoomType type,
-  ) async {
+  Future<void> _onPlayPressed(BuildContext context, RoomType type) async {
     _cleanupPreview();
     await ref.read(roomDataDbProvider.notifier).waitForInitialization;
     final rooms = ref.read(roomsByTypeProvider(type));
@@ -151,10 +158,7 @@ class _MainMenuState extends ConsumerState<MainMenu> {
 class _PreviewCvC extends ConsumerStatefulWidget {
   final void Function(String roomId) onRoomCreated;
 
-  const _PreviewCvC({
-    super.key,
-    required this.onRoomCreated,
-  });
+  const _PreviewCvC({super.key, required this.onRoomCreated});
 
   @override
   ConsumerState<_PreviewCvC> createState() => _PreviewCvCState();
