@@ -1,71 +1,53 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:othello/components/custom_button.dart';
-import 'package:othello/components/side_drawer.dart';
-import 'package:othello/objects/profile.dart';
+import 'package:othello/objects/room_data/room_data.dart';
+import 'package:othello/providers/game_state/game_state.dart';
+import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/screens/game_room.dart';
-import 'package:othello/screens/signup_screen.dart';
+import 'package:othello/screens/online.dart';
 import 'package:othello/utils/globals.dart';
 
-import 'online_rooms.dart';
+class MainMenu extends ConsumerStatefulWidget {
+  const MainMenu();
 
-class MainMenu extends StatefulWidget {
   @override
-  _MainMenuState createState() => _MainMenuState();
+  ConsumerState<MainMenu> createState() => _MainMenuState();
 }
 
-class _MainMenuState extends State<MainMenu> {
-  var user = FirebaseAuth.instance.currentUser;
+class _MainMenuState extends ConsumerState<MainMenu> {
+  bool _showPreview = true;
+  String? _previewRoomId;
+  GameState? _previewGameState;
+  RoomDataDb? _roomDataDb;
 
   @override
-  void initState() {
-    FirebaseAuth.instance.userChanges().listen((user) async {
-      this.user = user;
-      context.go('/');
-      await Profile.setProfile(context, user);
-    });
-    initDynamicLinks();
-    super.initState();
+  void dispose() {
+    _cleanupPreview();
+    super.dispose();
   }
 
-  void initDynamicLinks() async {
-    FirebaseDynamicLinks.instance.onLink(onSuccess: (dynamicLink) async {
-      final deepLink = dynamicLink?.link;
-      print("got link: $deepLink");
-
-      if (deepLink != null) {
-        context.go(deepLink.fragment);
-      }
-    }, onError: (OnLinkErrorException e) async {
-      print('onLinkError');
-      print(e.message);
-    });
-
-    final data = await FirebaseDynamicLinks.instance.getInitialLink();
-    final deepLink = data?.link;
-
-    if (deepLink != null) {
-      context.go(deepLink.path);
+  void _cleanupPreview() {
+    _previewGameState?.stop();
+    if (_previewRoomId != null) {
+      _roomDataDb?.deleteRoom(_previewRoomId!);
     }
+    _previewRoomId = null;
+    _previewGameState = null;
   }
 
-  Widget get _onlineButton => CustomButton(
-        onPressed: () async {
-          if (user == null)
-            context.push(SignUpScreen.routeName);
-          else
-            context.push(OnlineRooms.routeName);
-        },
-        width: Globals.maxScreenWidth * 0.34,
-        text: 'Online',
-      );
+  void _onPreviewRoomCreated(String roomId) {
+    _previewRoomId = roomId;
+    _previewGameState = ref.read(gameStateProvider(roomId).notifier);
+    _roomDataDb = ref.read(roomDataDbProvider.notifier);
+  }
 
   @override
   Widget build(BuildContext context) {
     Globals.setMediaQueryData(context);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
@@ -76,7 +58,6 @@ class _MainMenuState extends State<MainMenu> {
       ),
       child: Scaffold(
         backgroundColor: Colors.black54,
-        drawer: SideDrawer(),
         body: Center(
           child: SingleChildScrollView(
             child: Column(
@@ -96,43 +77,42 @@ class _MainMenuState extends State<MainMenu> {
                     maxHeight: Globals.screenHeight * 0.5,
                   ),
                   child: FittedBox(
-                    child: GameRoom.offlineCvC(),
+                    child: _showPreview
+                        ? _PreviewCvC(
+                            key: ValueKey(_previewRoomId),
+                            onRoomCreated: _onPreviewRoomCreated,
+                          )
+                        : SizedBox(width: 200, height: 200),
                   ),
                 ),
-                SizedBox(
-                  height: 40,
-                ),
-                Column(
+                SizedBox(height: 40),
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomButton(
-                          text: "vs Computer",
-                          onPressed: () {
-                            context.push(GameRoom.offlinePvCRouteName);
-                          },
-                          width: Globals.maxScreenWidth * 0.34,
-                        ),
-                        SizedBox(width: Globals.maxScreenWidth * 0.06),
-                        CustomButton(
-                          text: "Pass N Play",
-                          onPressed: () {
-                            context.push(GameRoom.offlinePvPRouteName);
-                          },
-                          width: Globals.maxScreenWidth * 0.34,
-                          white: false,
-                        ),
-                        if (Globals.screenWidth > Globals.screenHeight) ...[
-                          SizedBox(width: Globals.maxScreenWidth * 0.06),
-                          _onlineButton,
-                        ]
-                      ],
+                    CustomButton(
+                      text: "vs Computer",
+                      onPressed: () =>
+                          _onPlayPressed(context, RoomType.offlinePvC),
+                      width: Globals.maxScreenWidth * 0.34,
                     ),
-                    if (Globals.screenWidth <= Globals.screenHeight)
-                      _onlineButton,
+                    SizedBox(width: Globals.maxScreenWidth * 0.06),
+                    CustomButton(
+                      text: "Pass N Play",
+                      onPressed: () =>
+                          _onPlayPressed(context, RoomType.offlinePvP),
+                      width: Globals.maxScreenWidth * 0.34,
+                      white: false,
+                    ),
                   ],
+                ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  text: "Online",
+                  onPressed: () {
+                    _cleanupPreview();
+                    context.push(OnlineScreen.kPath);
+                  },
+                  width: Globals.maxScreenWidth * 0.34,
                 ),
               ],
             ),
@@ -140,5 +120,74 @@ class _MainMenuState extends State<MainMenu> {
         ),
       ),
     );
+  }
+
+  Future<void> _onPlayPressed(
+    BuildContext context,
+    RoomType type,
+  ) async {
+    _cleanupPreview();
+    await ref.read(roomDataDbProvider.notifier).waitForInitialization;
+    final rooms = ref.read(roomsByTypeProvider(type));
+
+    if (rooms.isEmpty) {
+      final room = type == RoomType.offlinePvP
+          ? RoomData.offlinePvP()
+          : RoomData.offlinePvC();
+      final id = await ref.read(roomDataDbProvider.notifier).createRoom(room);
+      if (context.mounted) context.go('/game_room/$id');
+      return;
+    }
+
+    if (rooms.length == 1) {
+      if (context.mounted) context.go('/game_room/${rooms.first.id}');
+      return;
+    }
+
+    if (context.mounted) context.go('/rooms/${type.name}');
+  }
+}
+
+class _PreviewCvC extends ConsumerStatefulWidget {
+  final void Function(String roomId) onRoomCreated;
+
+  const _PreviewCvC({
+    super.key,
+    required this.onRoomCreated,
+  });
+
+  @override
+  ConsumerState<_PreviewCvC> createState() => _PreviewCvCState();
+}
+
+class _PreviewCvCState extends ConsumerState<_PreviewCvC> {
+  String? _previewRoomId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensurePreviewRoom());
+  }
+
+  Future<void> _ensurePreviewRoom() async {
+    await ref.read(roomDataDbProvider.notifier).waitForInitialization;
+    final room = RoomData.offlineCvC();
+    final id = await ref.read(roomDataDbProvider.notifier).createRoom(room);
+    if (mounted) {
+      setState(() => _previewRoomId = id);
+      widget.onRoomCreated(id);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_previewRoomId == null) {
+      return SizedBox(
+        width: 200,
+        height: 200,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return GameRoom(roomDataId: _previewRoomId!, onlyBoard: true);
   }
 }

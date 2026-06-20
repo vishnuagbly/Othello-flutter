@@ -10,12 +10,16 @@ class CustomButton extends StatefulWidget {
     required this.onPressed,
     this.width,
     this.white = true,
+    this.foregroundColor = Colors.white,
+    this.backgroundColor = Colors.green,
   });
 
   final String text;
   final void Function() onPressed;
   final bool white;
   final double? width;
+  final Color foregroundColor;
+  final Color backgroundColor;
 
   @override
   _CustomButtonState createState() => _CustomButtonState();
@@ -40,10 +44,10 @@ class _CustomButtonState extends State<CustomButton> {
           child: ElevatedButton(
             key: _key,
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                foregroundColor: widget.foregroundColor,
+                backgroundColor: widget.backgroundColor,
                 padding: EdgeInsets.zero,
                 textStyle: GoogleFonts.montserrat(
-                  color: Colors.white,
                   fontSize: Globals.maxScreenWidth * 0.04,
                   fontWeight: FontWeight.w700,
                 )),
@@ -87,7 +91,7 @@ class _CustomButtonState extends State<CustomButton> {
                         waitUntilCacheIsComplete: true,
                         onFinishPlaying: (state) {
                           if (!_executedOnPressedFn) {
-                            WidgetsBinding.instance!.addPostFrameCallback((_) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
                               setState(() {
                                 _flipping = false;
                               });

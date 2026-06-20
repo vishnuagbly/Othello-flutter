@@ -83,7 +83,7 @@ class CustomPopupState extends State<CustomPopup> {
 
   void show(BuildContext context, CustomPopup popup) {
     overlayEntry = OverlayEntry(builder: (context) => popup);
-    Overlay.of(context)!.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void remove() {

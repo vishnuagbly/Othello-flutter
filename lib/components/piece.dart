@@ -1,98 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:othello/objects/room_data.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:othello/providers/game_state/game_state.dart';
 
-class Piece extends StatefulWidget {
-  Piece(this.cellWidth, {this.onCreation, this.initValue = -1, this.onTap});
+class Piece extends ConsumerWidget {
+  Piece(this.i, this.j, this.roomDataId);
 
-  final void Function(PieceState state)? onCreation;
-  final void Function(PieceState state)? onTap;
-  final double cellWidth;
-  final int initValue;
-
-  @override
-  PieceState createState() => PieceState(initValue);
-}
-
-class PieceState extends State<Piece> {
-  PieceState(int value) : this._value = _valueFromBoardValue(value);
-
-  int _value;
-  bool possibleMove = false;
-
-  static int _valueFromBoardValue(int boardValue) =>
-      boardValue == 1 ? 2 : boardValue;
-
-  int get boardValue {
-    if (_value == 0 || _value == 3) return 0;
-    if (_value == 1 || _value == 2) return 1;
-    return -1;
-  }
-
-  int get value => _value;
+  final int i;
+  final int j;
+  final String roomDataId;
 
   @override
-  void initState() {
-    (widget.onCreation ?? (_) {})(this);
-    super.initState();
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    // We only want to rebuild if this specific piece's state changes, or basic things like cellWidth.
+    // However, cellWidth and isWhiteTurn are simple enough to just use watch on specific fields.
+    final cellWidth = ref.read(
+      gameStateProvider(roomDataId).select((s) => s.cellWidth),
+    );
+    final pieceState = ref.watch(
+      gameStateProvider(roomDataId).select((s) => s.pieceStates[i][j]),
+    );
+    final isWhiteTurn = ref.watch(
+      gameStateProvider(roomDataId).select((s) => s.roomData.isWhiteTurn),
+    );
 
-  void stateFn({bool operate = true}) {
-    if (!mounted) return;
-    setState(() {
-      if (operate) _value = (_value + 1) % 4;
-    });
-  }
-
-  void set(int boardValue) {
-    if (!mounted) return;
-    setState(() {
-      _value = _valueFromBoardValue(boardValue);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     Widget child = Container();
 
-    if (possibleMove && value == -1) {
-      final _roomData = Provider.of<RoomData>(context, listen: false);
+    if (pieceState.possibleMove && pieceState.value == -1) {
       child = Center(
         child: Container(
-          width: widget.cellWidth / 2,
-          height: widget.cellWidth / 2,
+          width: cellWidth / 2,
+          height: cellWidth / 2,
           decoration: BoxDecoration(
-            color: _roomData.isWhiteTurn ? Colors.white54 : Colors.black54,
+            color: isWhiteTurn ? Colors.white54 : Colors.black54,
             borderRadius: BorderRadius.circular(50),
           ),
         ),
       );
     }
-    if (_value == 0)
+    if (pieceState.value == 0)
       child = FittedBox(
         fit: BoxFit.cover,
         child: Image.asset("assets/flip_0/frame_0.png"),
       );
-    else if (_value == 2)
+    else if (pieceState.value == 2)
       child = FittedBox(
         fit: BoxFit.cover,
         child: Image.asset("assets/flip_0/frame_18.png"),
       );
+
     return Container(
       padding: const EdgeInsets.all(0.5),
-      width: widget.cellWidth,
-      height: widget.cellWidth,
+      width: cellWidth,
+      height: cellWidth,
       color: Colors.black,
       child: InkWell(
         onTap: () {
-          if (_value == -1 && possibleMove && widget.onTap != null) {
-            widget.onTap!(this);
+          if (pieceState.value == -1 && pieceState.possibleMove) {
+            final notifier = ref.read(gameStateProvider(roomDataId).notifier);
+            notifier.onTapOnPiece(i, j)();
           }
         },
-        child: Container(
-          color: Colors.green[600],
-          child: child,
-        ),
+        child: Container(color: Colors.green[600], child: child),
       ),
     );
   }
