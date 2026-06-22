@@ -58,7 +58,7 @@ final class GameStateProvider
   }
 }
 
-String _$gameStateHash() => r'9df7dc188b44c5fb6b7c00c719c5c35a775dcbdd';
+String _$gameStateHash() => r'fbaefe8a8a1a230e8ac5d722c4eeb0a6ac920829';
 
 final class GameStateFamily extends $Family
     with

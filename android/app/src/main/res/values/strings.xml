@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_desc">Records which app is in the foreground and screen on/off events so the app can show you your device usage timeline. No screen content is read or stored.</string>
+</resources>
