@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/people/v1.dart' as people;
 import 'package:othello/objects/user/user.dart';
+import 'package:othello/utils/background_service/backup_meta.dart';
 import 'package:othello/utils/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synckit/synckit.dart';
@@ -13,6 +14,14 @@ class Users extends _$Users with SyncedState<User> {
 
   @override
   Dataset<User> build() {
+    // Mirror the logged-in user id into the shared meta box so the background
+    // backup isolate (which has no Riverpod/synckit) knows where to push.
+    listenSelf((previous, next) {
+      final users = next.values;
+      if (users.isNotEmpty) {
+        BackupMeta.setUserId(users.first.id);
+      }
+    });
     return initialize(
       SyncConfig(
         manager: SyncManager<User>(

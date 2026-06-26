@@ -30,6 +30,12 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    lint {
+        // We remove the default WorkManagerInitializer in the manifest and rely
+        // on the workmanager plugin's on-demand initialization.
+        disable += "RemoveWorkManagerInitializer"
+    }
+
     defaultConfig {
         applicationId = "com.vishnuworld.othello"
         minSdk = flutter.minSdkVersion
@@ -72,6 +78,7 @@ flutter {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
     ksp("androidx.room:room-compiler:2.8.4")

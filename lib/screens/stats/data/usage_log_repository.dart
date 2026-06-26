@@ -72,4 +72,27 @@ class UsageLogRepository {
       await db.close();
     }
   }
+
+  /// Returns events with `id` greater than [lastId], oldest first.
+  ///
+  /// Used by the background backup job to read everything recorded since the
+  /// last successful push (the watermark). Returns an empty list if the
+  /// database does not exist yet.
+  Future<List<UsageEvent>> fetchEventsSince(int lastId) async {
+    final path = '${await getDatabasesPath()}/$_dbName';
+    if (!await databaseExists(path)) return const [];
+
+    final db = await openReadOnlyDatabase(path);
+    try {
+      final rows = await db.query(
+        'events',
+        where: 'id > ?',
+        whereArgs: [lastId],
+        orderBy: 'id ASC',
+      );
+      return rows.map(UsageEvent.fromRow).toList();
+    } finally {
+      await db.close();
+    }
+  }
 }
