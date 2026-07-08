@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:othello/screens/stats/data/usage_log_repository.dart';
+import 'package:othello/utils/background_service/backup_log.dart';
 import 'package:othello/utils/background_service/backup_meta.dart';
 import 'package:othello/utils/background_service/backup_rollover.dart';
 
@@ -9,9 +10,11 @@ import 'package:othello/utils/background_service/backup_rollover.dart';
 /// Firestore, advancing the watermark only on success.
 abstract class BackupRunner {
   static Future<bool> run() async {
+    final logger = BackupLog();
     final userId = BackupMeta.getUserId();
     if (userId == null) {
       log('No user id; skipping backup', name: 'usage-backup');
+      await logger.warn('No user id; skipping backup');
       return true;
     }
 
@@ -19,6 +22,7 @@ abstract class BackupRunner {
     final events = await UsageLogRepository().fetchEventsSince(lastPushedId);
     if (events.isEmpty) {
       log('No new events to back up', name: 'usage-backup');
+      await logger.info('No new events to back up (last pushed id $lastPushedId)');
       return true;
     }
 
@@ -38,11 +42,13 @@ abstract class BackupRunner {
     } catch (err) {
       // Most likely the document exceeded the size limit. Archive + retry once.
       log('Push failed, attempting rollover: $err', name: 'usage-backup');
+      await logger.warn('Push failed, attempting rollover: $err');
       try {
         await BackupRollover.rolloverIfNeeded(userId);
         await _push(userId, data);
       } catch (err2) {
         log('Backup still failing after rollover: $err2', name: 'usage-backup');
+        await logger.error('Backup still failing after rollover: $err2');
         await BackupMeta.setLastError('$err2');
         // Keep the watermark unchanged so the next run retries these events.
         return false;
@@ -53,6 +59,7 @@ abstract class BackupRunner {
     await BackupMeta.setLastError(null);
     log('Backed up ${events.length} events (through id $maxId)',
         name: 'usage-backup');
+    await logger.info('Backed up ${events.length} events (through id $maxId)');
     return true;
   }
 

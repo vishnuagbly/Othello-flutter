@@ -51,3 +51,5 @@ node_modules
 .cursor/
 
 lib/secrets.dart
+
+service-account-key.json

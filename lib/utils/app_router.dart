@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:othello/extensions/widget.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/screens/game_room.dart';
+import 'package:othello/screens/logs/logs.dart';
 import 'package:othello/screens/main_menu.dart';
 import 'package:othello/screens/online.dart';
 import 'package:othello/screens/room_list/room_list.dart';
@@ -33,6 +34,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: StatsScreen.kPath,
       builder: (context, state) => const StatsScreen(),
+    ),
+    GoRoute(
+      path: LogsScreen.kPath,
+      builder: (context, state) => const LogsScreen(),
     ),
   ],
 );

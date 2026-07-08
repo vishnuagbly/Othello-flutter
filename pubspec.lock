@@ -1121,10 +1121,10 @@ packages:
     dependency: "direct main"
     description:
       name: synckit
-      sha256: "9c0898820541cc835093eb1883b69870d431913511661c7c3c6973428641df5c"
+      sha256: "8880076bbade7c1b787365b80645407f39f3e105ce3d8f373f1b4c98d39b948b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.17"
+    version: "0.4.6"
   term_glyph:
     dependency: transitive
     description:

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:othello/firebase_options.dart';
+import 'package:othello/utils/background_service/backup_log.dart';
 import 'package:othello/utils/background_service/backup_meta.dart';
 import 'package:othello/utils/background_service/backup_runner.dart';
 import 'package:workmanager/workmanager.dart';
@@ -20,6 +21,7 @@ abstract class ServiceTasks {
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    final logger = BackupLog()..task = task;
     try {
       WidgetsFlutterBinding.ensureInitialized();
       await Hive.initFlutter();
@@ -30,13 +32,18 @@ void callbackDispatcher() {
         );
       }
       log('Native called background task: $task', name: 'usage-backup');
+      await logger.info('Started task');
 
       if (task == ServiceTasks.kBackup) {
-        return await BackupRunner.run();
+        final result = await BackupRunner.run();
+        await logger.info('Task finished: $result');
+        return result;
       }
+      await logger.info('Unknown task');
       return true;
     } catch (e) {
       log('Background task failed: $task $e', name: 'usage-backup');
+      await logger.error('Task crashed: $e');
       return false;
     }
   });

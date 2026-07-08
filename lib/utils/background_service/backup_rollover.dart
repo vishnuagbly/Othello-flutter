@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:othello/utils/background_service/backup_log.dart';
 
 /// Handles the Firestore document-size rollover.
 ///
@@ -17,6 +18,7 @@ abstract class BackupRollover {
   static const _thresholdBytes = 900 * 1024;
 
   static Future<void> rolloverIfNeeded(String userId) async {
+    final logger = BackupLog();
     final docRef =
         FirebaseFirestore.instance.collection(collection).doc(userId);
     final snap = await docRef.get();
@@ -27,6 +29,8 @@ abstract class BackupRollover {
     if (estimatedBytes < _thresholdBytes) {
       log('Doc usage_logs/$userId ~$estimatedBytes bytes; under threshold',
           name: 'usage-backup');
+      await logger
+          .info('Doc usage_logs/$userId ~$estimatedBytes bytes; under threshold');
       return;
     }
 
@@ -39,5 +43,7 @@ abstract class BackupRollover {
     });
     log('Archived usage_logs/$userId to history/$time (~$estimatedBytes bytes)',
         name: 'usage-backup');
+    await logger.warn(
+        'Archived usage_logs/$userId to history/$time (~$estimatedBytes bytes)');
   }
 }
