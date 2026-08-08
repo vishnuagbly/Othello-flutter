@@ -50,7 +50,7 @@ final class BackupLogsProvider
   }
 }
 
-String _$backupLogsHash() => r'177a96877e221ec3678ef04ba1f9e7d8e4ad0c40';
+String _$backupLogsHash() => r'7468ee369f4db33c4b177c371ef8eb83575bad9d';
 
 /// Local-only [SyncedState] over the shared `backup_logs` Hive box that the
 /// background WorkManager isolate writes to. The network layer is disabled, so

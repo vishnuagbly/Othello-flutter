@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:googleapis/people/v1.dart' as people;
 import 'package:othello/objects/user/user.dart';
@@ -70,10 +72,28 @@ bool isLoggedIn(Ref ref) {
   return ref.watch(usersProvider.select((users) => users.isNotEmpty));
 }
 
+const _kNoUserLoggedInMessage = 'No user is currently logged in';
+
 @riverpod
 User currentUser(Ref ref) {
   if (!ref.watch(isLoggedInProvider)) {
-    throw Exception('No user is currently logged in');
+    throw Exception(_kNoUserLoggedInMessage);
   }
   return ref.watch(usersProvider).values.first;
+}
+
+const _kAdminEmail = 'vishnuagbly@gmail.com';
+
+@riverpod
+bool isAdmin(Ref ref) {
+  try {
+    return ref.watch(
+      currentUserProvider.select((user) => user.email == _kAdminEmail),
+    );
+  } catch (err) {
+    if (!'$err'.contains(_kNoUserLoggedInMessage)) {
+      log('$err', name: 'isAdminProvider');
+    }
+    return false;
+  }
 }
