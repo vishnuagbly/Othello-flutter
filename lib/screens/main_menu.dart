@@ -9,6 +9,7 @@ import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/providers/user/users.dart';
 import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/online.dart';
+import 'package:othello/screens/room_list/room_list.dart';
 import 'package:othello/screens/stats/stats.dart';
 import 'package:othello/utils/globals.dart';
 
@@ -134,16 +135,16 @@ class _MainMenuState extends ConsumerState<MainMenu> {
           ? RoomData.offlinePvP()
           : RoomData.offlinePvC();
       final id = await ref.read(roomDataDbProvider.notifier).createRoom(room);
-      if (context.mounted) context.go('/game_room/$id');
+      if (context.mounted) context.go(GameRoomGate.location(id));
       return;
     }
 
     if (rooms.length == 1) {
-      if (context.mounted) context.go('/game_room/${rooms.first.id}');
+      if (context.mounted) context.go(GameRoomGate.location(rooms.first.id));
       return;
     }
 
-    if (context.mounted) context.go('/rooms/${type.name}');
+    if (context.mounted) context.go(RoomListScreen.location(type));
   }
 }
 

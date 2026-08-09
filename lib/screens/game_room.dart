@@ -16,6 +16,10 @@ import 'package:othello/widgets/room_data_scope.dart';
 
 /// Gate: waits for init, checks room exists; shows loading/invalid or builds [GameRoom].
 class GameRoomGate extends ConsumerStatefulWidget {
+  static const kPath = '/game_room/:id';
+
+  static String location(String id) => kPath.replaceFirst(':id', id);
+
   const GameRoomGate({super.key, required this.roomDataId});
 
   final String roomDataId;
@@ -162,7 +166,7 @@ class _GameRoomState extends ConsumerState<GameRoom>
     // not dispose the provider; (2) build() self-detach already stopped the
     // old provider from reacting to DB changes; (3) the old provider stays
     // in memory inert (no subscriptions), which is acceptable.
-    context.go('/game_room/$newId');
+    context.go(GameRoomGate.location(newId));
   }
 
   @override

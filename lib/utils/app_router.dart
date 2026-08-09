@@ -13,14 +13,14 @@ final goRouter = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => MainMenu()),
     GoRoute(
-      path: '/game_room/:id',
+      path: GameRoomGate.kPath,
       builder: (context, state) {
         final id = state.pathParameters['id']!;
         return GameRoomGate(key: ValueKey(id), roomDataId: id);
       },
     ),
     GoRoute(
-      path: '/rooms/:type',
+      path: RoomListScreen.kPath,
       builder: (context, state) {
         final typeStr = state.pathParameters['type']!;
         final type = RoomType.values.byName(typeStr);

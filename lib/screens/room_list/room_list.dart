@@ -6,12 +6,18 @@ import 'package:intl/intl.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/providers/user/users.dart';
+import 'package:othello/screens/game_room.dart';
 import 'package:othello/screens/stats/stats.dart';
 import 'package:othello/utils/globals.dart';
 
 import 'components/join_room_dialog.dart';
 
 class RoomListScreen extends ConsumerWidget {
+  static const kPath = '/rooms/:type';
+
+  static String location(RoomType type) =>
+      kPath.replaceFirst(':type', type.name);
+
   const RoomListScreen({super.key, required this.roomType});
 
   final RoomType roomType;
@@ -124,7 +130,7 @@ class RoomListScreen extends ConsumerWidget {
                 },
               ),
               onTap: canEnter
-                  ? () => context.go('/game_room/${room.id}')
+                  ? () => context.go(GameRoomGate.location(room.id))
                   : null,
             ),
           );
@@ -139,7 +145,7 @@ class RoomListScreen extends ConsumerWidget {
           final notifier = ref.read(roomDataDbProvider.notifier);
           final room = _newRoomForType(roomType);
           final id = await notifier.createRoom(room);
-          if (context.mounted) context.go('/game_room/$id');
+          if (context.mounted) context.go(GameRoomGate.location(id));
         },
         child: const Icon(Icons.add),
       ),
@@ -290,7 +296,7 @@ class RoomListScreen extends ConsumerWidget {
         return;
       }
       if (!context.mounted) return;
-      context.go('/game_room/${room.id}');
+      context.go(GameRoomGate.location(room.id));
       return;
     }
 
@@ -304,6 +310,6 @@ class RoomListScreen extends ConsumerWidget {
       return;
     }
     if (!context.mounted) return;
-    context.go('/game_room/${room.id}');
+    context.go(GameRoomGate.location(room.id));
   }
 }
