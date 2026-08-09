@@ -41,7 +41,7 @@ final class RoomDataDbProvider
   }
 }
 
-String _$roomDataDbHash() => r'fe4f22dea44a748537ed0c116403a2e58fe7f701';
+String _$roomDataDbHash() => r'c8d1fb29c7f729968925d44f7dcb848635f78f45';
 
 abstract class _$RoomDataDb extends $Notifier<Dataset<RoomData>> {
   Dataset<RoomData> build();

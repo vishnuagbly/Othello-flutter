@@ -49,7 +49,6 @@ class _MainMenuState extends ConsumerState<MainMenu> {
   @override
   Widget build(BuildContext context) {
     Globals.setMediaQueryData(context);
-    final isAdmin = ref.watch(isAdminProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -116,18 +115,7 @@ class _MainMenuState extends ConsumerState<MainMenu> {
                     context.push(OnlineScreen.kPath);
                   },
                   width: Globals.maxScreenWidth * 0.34,
-                ),
-                if (isAdmin) ...[
-                  const SizedBox(height: 20),
-                  CustomButton(
-                    text: "Text Screen",
-                    onPressed: () {
-                      context.push(StatsScreen.kPath);
-                    },
-                    white: false,
-                    width: Globals.maxScreenWidth * 0.34,
-                  ),
-                ],
+                )
               ],
             ),
           ),

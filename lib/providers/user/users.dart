@@ -81,19 +81,3 @@ User currentUser(Ref ref) {
   }
   return ref.watch(usersProvider).values.first;
 }
-
-const _kAdminEmail = 'vishnuagbly@gmail.com';
-
-@riverpod
-bool isAdmin(Ref ref) {
-  try {
-    return ref.watch(
-      currentUserProvider.select((user) => user.email == _kAdminEmail),
-    );
-  } catch (err) {
-    if (!'$err'.contains(_kNoUserLoggedInMessage)) {
-      log('$err', name: 'isAdminProvider');
-    }
-    return false;
-  }
-}
