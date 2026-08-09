@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/objects/player/player.dart';
 import 'package:othello/providers/user/users.dart';
@@ -16,19 +17,11 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
 
   @override
   Dataset<RoomData> build() {
-    ref.listen<bool>(isLoggedInProvider, (prev, isLoggedIn) async {
-      if (isLoggedIn) {
-        final user = ref.read(currentUserProvider);
-        await _startOnlineListening(user.id);
-      } else {
-        await _stopOnlineListening();
-      }
-    });
     ref.onDispose(() {
       unawaited(dispose());
     });
 
-    return initialize(
+    final initialState = initialize(
       SyncConfig(
         manager: SyncManager<RoomData>(
           stdObjParams: StdObjParams<RoomData>(
@@ -53,6 +46,26 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
         ),
       ),
     );
+
+    /* Listens to the user id directly, instead of combining
+    * [isLoggedInProvider] and [currentUserProvider]. Riverpod notifies the
+    * listeners of a provider one at a time, so reading a sibling derived
+    * provider from inside this callback can observe its previous (here,
+    * errored) value.
+    * Registered after [initialize] so that `fireImmediately` can safely reach
+    * the sync config. */
+    ref.listen<String?>(
+      usersProvider.select((users) => users.values.firstOrNull?.id),
+      (prev, userId) => unawaited(_syncOnlineListening(userId)),
+      fireImmediately: true,
+    );
+
+    return initialState;
+  }
+
+  Future<void> _syncOnlineListening(String? userId) {
+    if (userId == null) return _stopOnlineListening();
+    return _startOnlineListening(userId);
   }
 
   Future<void> _startOnlineListening(String userId) async {
@@ -61,6 +74,14 @@ class RoomDataDb extends _$RoomDataDb with SyncedState<RoomData> {
       await _stopOnlineListening();
     }
     _listeningForUserId = userId;
+    /* [keepQueryInSync] needs the synckit manager, which is only ready once
+    * `initialize` has finished. This is reachable before that, since the
+    * `fireImmediately` listener in [build] runs while `initialize` is still in
+    * flight. */
+    await waitForInitialization;
+    /* A logout, or a login as someone else, can land during the await above, so
+    * bail out instead of subscribing for a user we are no longer tracking. */
+    if (_listeningForUserId != userId) return;
     keepQueryInSync(
       (query) => query.where(
         Filter.or(
