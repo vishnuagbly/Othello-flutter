@@ -9,6 +9,7 @@ class BackupState with StdObj {
     this.userId,
     this.lastPushedId = 0,
     this.lastError,
+    this.docBytes,
   });
 
   /// Stored as a single entry under this fixed key.
@@ -20,6 +21,11 @@ class BackupState with StdObj {
   final int lastPushedId;
   final String? lastError;
 
+  /// Approximate serialized size of the current Firestore document's `data`
+  /// field. `null` means it has not been seeded yet, so the next run reads the
+  /// document once to initialize it (avoids undercounting a pre-existing doc).
+  final int? docBytes;
+
   @override
   String get id => kId;
 
@@ -28,12 +34,14 @@ class BackupState with StdObj {
         'userId': userId,
         'lastPushedId': lastPushedId,
         'lastError': lastError,
+        'docBytes': docBytes,
       };
 
   factory BackupState.fromJson(Map<String, dynamic> json) => BackupState(
         userId: json['userId'] as String?,
         lastPushedId: (json['lastPushedId'] as num?)?.toInt() ?? 0,
         lastError: json['lastError'] as String?,
+        docBytes: (json['docBytes'] as num?)?.toInt(),
       );
 }
 
@@ -63,19 +71,11 @@ abstract class BackupMeta {
       userId: userId,
       lastPushedId: state.lastPushedId,
       lastError: state.lastError,
+      docBytes: state.docBytes,
     ));
   }
 
   static int getLastPushedId() => _read().lastPushedId;
-
-  static Future<void> setLastPushedId(int id) async {
-    final state = _read();
-    await _write(BackupState(
-      userId: state.userId,
-      lastPushedId: id,
-      lastError: state.lastError,
-    ));
-  }
 
   static Future<void> setLastError(String? error) async {
     final state = _read();
@@ -83,6 +83,24 @@ abstract class BackupMeta {
       userId: state.userId,
       lastPushedId: state.lastPushedId,
       lastError: error,
+      docBytes: state.docBytes,
+    ));
+  }
+
+  static int? getDocBytes() => _read().docBytes;
+
+  /// Persists the watermark and current document size together after a
+  /// successful push, clearing any previous error.
+  static Future<void> setBackupResult({
+    required int lastPushedId,
+    required int docBytes,
+  }) async {
+    final state = _read();
+    await _write(BackupState(
+      userId: state.userId,
+      lastPushedId: lastPushedId,
+      lastError: null,
+      docBytes: docBytes,
     ));
   }
 }
