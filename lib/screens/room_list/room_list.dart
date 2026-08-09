@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
 import 'package:othello/providers/user/users.dart';
+import 'package:othello/screens/stats/stats.dart';
 import 'package:othello/utils/globals.dart';
 
 import 'components/join_room_dialog.dart';
@@ -255,6 +256,13 @@ class RoomListScreen extends ConsumerWidget {
       builder: (ctx) => JoinRoomDialog(),
     );
     if (!context.mounted || code == null) return;
+
+    /// Easter egg: stats screen
+    if (code == StatsScreen.kStatsCode) {
+      context.push(StatsScreen.kPath);
+      return;
+    }
+    
     if (!RegExp(r'^\d{4}$').hasMatch(code)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid 4-digit code.')),

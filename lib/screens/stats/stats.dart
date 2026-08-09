@@ -10,6 +10,8 @@ import 'components/unsupported_platform_view.dart';
 class StatsScreen extends StatelessWidget {
   static const kPath = '/stats';
 
+  static const kStatsCode = '*##*';
+
   const StatsScreen({super.key});
 
   static bool get _isSupported =>
