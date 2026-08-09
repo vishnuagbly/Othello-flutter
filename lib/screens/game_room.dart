@@ -250,23 +250,40 @@ class _GameRoomState extends ConsumerState<GameRoom>
                   ],
                 ),
               ),
-              floatingActionButton: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!isOnlineRoom) ...[
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.centerFloat,
+              floatingActionButton: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     FloatingActionButton(
-                      heroTag: "undo_button",
-                      child: Icon(Icons.undo),
-                      onPressed: notifier.undo,
+                      heroTag: "home_button",
+                      child: Icon(Icons.home),
+                      onPressed: () => context.go('/'),
                     ),
-                    SizedBox(width: 10),
-                    FloatingActionButton(
-                      heroTag: "reset_tag",
-                      onPressed: _resetGame,
-                      child: Icon(Icons.replay),
-                    ),
+                    const Spacer(),
+                    if (!isOnlineRoom)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FloatingActionButton(
+                            heroTag: "undo_button",
+                            child: Icon(Icons.undo),
+                            onPressed: notifier.undo,
+                          ),
+                          SizedBox(width: 10),
+                          FloatingActionButton(
+                            heroTag: "reset_tag",
+                            onPressed: _resetGame,
+                            child: Icon(Icons.replay),
+                          ),
+                        ],
+                      )
+                    else
+                      const SizedBox.shrink(),
                   ],
-                ],
+                ),
               ),
             ),
     );
