@@ -33,8 +33,13 @@
 .pub/
 /build/
 
-# Key Properties
+# Key Properties / signing
 android/key.properties
+android/keystore-credentials.txt
+android/*.jks
+android/*.keystore
+*.jks
+*.keystore
 
 # Web related
 
