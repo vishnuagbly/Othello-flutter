@@ -58,3 +58,5 @@ node_modules
 lib/secrets.dart
 
 service-account-key.json
+
+**/*.pem
