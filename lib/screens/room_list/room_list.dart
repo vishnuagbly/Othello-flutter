@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:helpful_components/helpful_components.dart';
 import 'package:intl/intl.dart';
 import 'package:othello/objects/room_data/room_data.dart';
 import 'package:othello/providers/room_data_db/room_data_db.dart';
@@ -239,15 +240,9 @@ class RoomListScreen extends ConsumerWidget {
     if (!context.mounted) return;
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Room Created'),
+      builder: (ctx) => CommonAlertDialog(
+        'Room Created',
         content: Text('Share this room code: $id'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
-          ),
-        ],
       ),
     );
   }

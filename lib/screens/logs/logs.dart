@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:othello/components/boolean_dialog.dart';
+import 'package:helpful_components/helpful_components.dart';
 import 'package:othello/components/empty_placeholder.dart';
 import 'package:othello/screens/logs/data/log_providers.dart';
 import 'package:othello/utils/background_service/backup_log.dart';
