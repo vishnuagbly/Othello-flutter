@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart';
 import 'package:googleapis/people/v1.dart' as people;
+import 'package:helpful_components/helpful_components.dart';
 import 'package:othello/components/custom_button.dart';
 import 'package:othello/providers/user/users.dart';
 import 'package:othello/utils/globals.dart';
@@ -139,7 +140,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 else
                                   CustomButton(
                                     text: 'Sign In via Google',
-                                    onPressed: kGoogleSignIn.signIn,
+                                    onPressed: () => showDialog(
+                                      context: context,
+                                      builder: (_) => FutureDialog(
+                                        future: kGoogleSignIn.signIn(),
+                                        throwError: true,
+                                      ),
+                                    ),
                                     width: Globals.maxScreenWidth * 0.6,
                                     backgroundColor: Colors.deepOrangeAccent,
                                   ),
