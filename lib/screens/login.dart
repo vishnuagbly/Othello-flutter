@@ -144,7 +144,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       context: context,
                                       builder: (_) => FutureDialog(
                                         future: kGoogleSignIn.signIn(),
-                                        throwError: true,
+                                        onData: (res) => (res == null)
+                                            ? CommonAlertDialog(
+                                                'Not Signed In',
+                                                error: true,
+                                              )
+                                            : CommonAlertDialog(
+                                                'Successfully Signed in',
+                                              ),
+                                        onError: (err) => CommonAlertDialog(
+                                          'Err: $err',
+                                          error: true,
+                                        ),
                                       ),
                                     ),
                                     width: Globals.maxScreenWidth * 0.6,
